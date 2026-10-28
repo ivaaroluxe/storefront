@@ -1,3 +1,4 @@
+import {useState} from 'react';
 import {Link, useNavigate} from 'react-router';
 import {type MappedProductOptions} from '@shopify/hydrogen';
 import type {
@@ -8,6 +9,8 @@ import {AddToCartButton} from './AddToCartButton';
 import {useAside} from './Aside';
 import type {ProductFragment} from 'storefrontapi.generated';
 
+const MAX_QUANTITY = 10;
+
 export function ProductForm({
   productOptions,
   selectedVariant,
@@ -17,16 +20,25 @@ export function ProductForm({
 }) {
   const navigate = useNavigate();
   const {open} = useAside();
+  const [quantity, setQuantity] = useState(1);
+  const available = Boolean(selectedVariant?.availableForSale);
+
   return (
-    <div className="product-form">
+    <div className="iv-pdp-form">
       {productOptions.map((option) => {
         // If there is only a single value in the option values, don't display the option
         if (option.optionValues.length === 1) return null;
+        const selectedValue = option.optionValues.find((v) => v.selected);
 
         return (
-          <div className="product-options" key={option.name}>
-            <h5>{option.name}</h5>
-            <div className="product-options-grid">
+          <fieldset className="iv-option" key={option.name}>
+            <legend className="iv-option-legend">
+              {option.name}
+              {selectedValue ? (
+                <span className="iv-option-current">{selectedValue.name}</span>
+              ) : null}
+            </legend>
+            <div className="iv-option-values">
               {option.optionValues.map((value) => {
                 const {
                   name,
@@ -38,88 +50,102 @@ export function ProductForm({
                   isDifferentProduct,
                   swatch,
                 } = value;
+                const className = `iv-option-value${
+                  selected ? ' is-selected' : ''
+                }${available ? '' : ' is-unavailable'}`;
 
                 if (isDifferentProduct) {
-                  // SEO
-                  // When the variant is a combined listing child product
-                  // that leads to a different url, we need to render it
-                  // as an anchor tag
+                  // A combined listing child product lives at its own URL,
+                  // so it is a real link (good for search engines)
                   return (
                     <Link
-                      className="product-options-item"
+                      className={className}
                       key={option.name + name}
                       prefetch="intent"
                       preventScrollReset
                       replace
                       to={`/products/${handle}?${variantUriQuery}`}
-                      style={{
-                        border: selected
-                          ? '1px solid black'
-                          : '1px solid transparent',
-                        opacity: available ? 1 : 0.3,
-                      }}
+                      aria-current={selected ? 'true' : undefined}
                     >
                       <ProductOptionSwatch swatch={swatch} name={name} />
                     </Link>
                   );
-                } else {
-                  // SEO
-                  // When the variant is an update to the search param,
-                  // render it as a button with javascript navigating to
-                  // the variant so that SEO bots do not index these as
-                  // duplicated links
-                  return (
-                    <button
-                      type="button"
-                      className={`product-options-item${
-                        exists && !selected ? ' link' : ''
-                      }`}
-                      key={option.name + name}
-                      style={{
-                        border: selected
-                          ? '1px solid black'
-                          : '1px solid transparent',
-                        opacity: available ? 1 : 0.3,
-                      }}
-                      disabled={!exists}
-                      onClick={() => {
-                        if (!selected) {
-                          void navigate(`?${variantUriQuery}`, {
-                            replace: true,
-                            preventScrollReset: true,
-                          });
-                        }
-                      }}
-                    >
-                      <ProductOptionSwatch swatch={swatch} name={name} />
-                    </button>
-                  );
                 }
+
+                // A variant of this product only changes the URL's search
+                // params, so it is a button rather than a crawlable link
+                return (
+                  <button
+                    type="button"
+                    className={className}
+                    key={option.name + name}
+                    aria-pressed={selected}
+                    disabled={!exists}
+                    onClick={() => {
+                      if (!selected) {
+                        void navigate(`?${variantUriQuery}`, {
+                          replace: true,
+                          preventScrollReset: true,
+                        });
+                      }
+                    }}
+                  >
+                    <ProductOptionSwatch swatch={swatch} name={name} />
+                    {!available && exists ? (
+                      <span className="iv-sr-only"> (sold out)</span>
+                    ) : null}
+                  </button>
+                );
               })}
             </div>
-            <br />
-          </div>
+          </fieldset>
         );
       })}
-      <AddToCartButton
-        disabled={!selectedVariant || !selectedVariant.availableForSale}
-        onClick={() => {
-          open('cart');
-        }}
-        lines={
-          selectedVariant
-            ? [
-                {
-                  merchandiseId: selectedVariant.id,
-                  quantity: 1,
-                  selectedVariant,
-                },
-              ]
-            : []
-        }
-      >
-        {selectedVariant?.availableForSale ? 'Add to cart' : 'Sold out'}
-      </AddToCartButton>
+
+      <div className="iv-pdp-buy">
+        <div className="iv-qty" role="group" aria-label="Quantity">
+          <button
+            type="button"
+            className="iv-qty-btn"
+            aria-label="Decrease quantity"
+            disabled={quantity <= 1}
+            onClick={() => setQuantity((q) => Math.max(1, q - 1))}
+          >
+            <MinusIcon />
+          </button>
+          <span className="iv-qty-value" aria-live="polite">
+            {quantity}
+          </span>
+          <button
+            type="button"
+            className="iv-qty-btn"
+            aria-label="Increase quantity"
+            disabled={quantity >= MAX_QUANTITY}
+            onClick={() => setQuantity((q) => Math.min(MAX_QUANTITY, q + 1))}
+          >
+            <PlusIcon />
+          </button>
+        </div>
+        <AddToCartButton
+          disabled={!selectedVariant || !available}
+          onClick={() => {
+            open('cart');
+          }}
+          lines={
+            selectedVariant
+              ? [
+                  {
+                    merchandiseId: selectedVariant.id,
+                    quantity,
+                    selectedVariant,
+                  },
+                ]
+              : []
+          }
+        >
+          {available ? 'Add to bag' : 'Sold out'}
+        </AddToCartButton>
+      </div>
     </div>
   );
 }
@@ -134,17 +160,50 @@ function ProductOptionSwatch({
   const image = swatch?.image?.previewImage?.url;
   const color = swatch?.color;
 
-  if (!image && !color) return name;
+  if (!image && !color) return <span>{name}</span>;
 
   return (
-    <div
-      aria-label={name}
-      className="product-option-label-swatch"
-      style={{
-        backgroundColor: color || 'transparent',
-      }}
+    <span className="iv-swatch-wrap">
+      <span
+        className="iv-swatch"
+        style={{backgroundColor: color || 'transparent'}}
+        aria-hidden="true"
+      >
+        {!!image && <img src={image} alt="" />}
+      </span>
+      <span className="iv-sr-only">{name}</span>
+    </span>
+  );
+}
+
+export function MinusIcon() {
+  return (
+    <svg
+      width="14"
+      height="14"
+      viewBox="0 0 14 14"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.4"
+      aria-hidden="true"
     >
-      {!!image && <img src={image} alt={name} />}
-    </div>
+      <path d="M2 7h10" />
+    </svg>
+  );
+}
+
+export function PlusIcon() {
+  return (
+    <svg
+      width="14"
+      height="14"
+      viewBox="0 0 14 14"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.4"
+      aria-hidden="true"
+    >
+      <path d="M2 7h10M7 2v10" />
+    </svg>
   );
 }

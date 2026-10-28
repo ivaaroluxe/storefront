@@ -107,13 +107,7 @@ export function HeaderMenu({
             ? new URL(item.url).pathname
             : item.url;
         return (
-          <NavLink
-            end
-            key={item.id}
-            onClick={close}
-            prefetch="intent"
-            to={url}
-          >
+          <NavLink end key={item.id} onClick={close} prefetch="intent" to={url}>
             {item.title}
           </NavLink>
         );

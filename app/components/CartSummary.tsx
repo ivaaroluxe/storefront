@@ -2,16 +2,16 @@ import type {CartApiQueryFragment} from 'storefrontapi.generated';
 import type {CartLayout} from '~/components/CartMain';
 import {CartForm, Money, type OptimisticCart} from '@shopify/hydrogen';
 import {useEffect, useId, useRef, useState} from 'react';
-import {useFetcher} from 'react-router';
+import {useFetcher, type FetcherWithComponents} from 'react-router';
 
 type CartSummaryProps = {
   cart: OptimisticCart<CartApiQueryFragment | null>;
   layout: CartLayout;
 };
 
+const NOTE_MAX = 300;
+
 export function CartSummary({cart, layout}: CartSummaryProps) {
-  const className =
-    layout === 'page' ? 'cart-summary-page' : 'cart-summary-aside';
   const summaryId = useId();
   const discountsHeadingId = useId();
   const discountCodeInputId = useId();
@@ -19,30 +19,100 @@ export function CartSummary({cart, layout}: CartSummaryProps) {
   const giftCardInputId = useId();
 
   return (
-    <div aria-labelledby={summaryId} className={className}>
-      <h4 id={summaryId}>Totals</h4>
-      <dl role="group" className="cart-subtotal">
+    <div
+      aria-labelledby={summaryId}
+      className={`iv-summary iv-summary--${layout}`}
+    >
+      <h2 id={summaryId} className="iv-summary-title">
+        {layout === 'page' ? 'Order summary' : 'Summary'}
+      </h2>
+
+      <CartNote note={cart?.note} />
+
+      <details className="iv-summary-codes">
+        <summary>Discount or gift card</summary>
+        <CartDiscounts
+          discountCodes={cart?.discountCodes}
+          discountsHeadingId={discountsHeadingId}
+          discountCodeInputId={discountCodeInputId}
+        />
+        <CartGiftCard
+          giftCardCodes={cart?.appliedGiftCards}
+          giftCardHeadingId={giftCardHeadingId}
+          giftCardInputId={giftCardInputId}
+        />
+      </details>
+
+      <dl className="iv-summary-row">
         <dt>Subtotal</dt>
         <dd>
           {cart?.cost?.subtotalAmount?.amount ? (
             <Money data={cart?.cost?.subtotalAmount} />
           ) : (
-            '-'
+            '–'
           )}
         </dd>
       </dl>
-      <CartDiscounts
-        discountCodes={cart?.discountCodes}
-        discountsHeadingId={discountsHeadingId}
-        discountCodeInputId={discountCodeInputId}
-      />
-      <CartGiftCard
-        giftCardCodes={cart?.appliedGiftCards}
-        giftCardHeadingId={giftCardHeadingId}
-        giftCardInputId={giftCardInputId}
-      />
+      <p className="iv-summary-fine">
+        Taxes and delivery are calculated at checkout.
+      </p>
+
       <CartCheckoutActions checkoutUrl={cart?.checkoutUrl} />
     </div>
+  );
+}
+
+/**
+ * "What I wish for you…" — an optional personal message saved on the cart
+ * as the order note, so it appears with the order in Shopify admin.
+ */
+function CartNote({note}: {note?: string | null}) {
+  const noteId = useId();
+  const hintId = useId();
+  const [length, setLength] = useState(note?.length ?? 0);
+
+  return (
+    <CartForm route="/cart" action={CartForm.ACTIONS.NoteUpdate}>
+      {(fetcher: FetcherWithComponents<any>) => {
+        const saving = fetcher.state !== 'idle';
+        const saved = !saving && fetcher.data && !fetcher.data.errors?.length;
+        return (
+          <div className="iv-note">
+            <label htmlFor={noteId} className="iv-note-label">
+              What I wish for you…
+              <span className="iv-note-optional">Optional</span>
+            </label>
+            <textarea
+              id={noteId}
+              name="note"
+              rows={3}
+              maxLength={NOTE_MAX}
+              defaultValue={note ?? ''}
+              aria-describedby={hintId}
+              placeholder="A few words for the person receiving this gift"
+              onChange={(e) => setLength(e.currentTarget.value.length)}
+              onBlur={(e) => {
+                if ((e.currentTarget.value ?? '') !== (note ?? '')) {
+                  e.currentTarget.form?.requestSubmit();
+                }
+              }}
+            />
+            <div className="iv-note-foot">
+              <span id={hintId}>
+                {saving
+                  ? 'Saving…'
+                  : saved
+                    ? 'Message saved with your order.'
+                    : `${length}/${NOTE_MAX}`}
+              </span>
+              <button type="submit" className="iv-link-btn" disabled={saving}>
+                Save message
+              </button>
+            </div>
+          </div>
+        );
+      }}
+    </CartForm>
   );
 }
 
@@ -50,11 +120,29 @@ function CartCheckoutActions({checkoutUrl}: {checkoutUrl?: string}) {
   if (!checkoutUrl) return null;
 
   return (
-    <div>
-      <a href={checkoutUrl} target="_self">
-        <p>Continue to Checkout &rarr;</p>
+    <div className="iv-checkout">
+      <a
+        href={checkoutUrl}
+        target="_self"
+        className="iv-btn iv-btn--gold iv-btn--block iv-btn--tall"
+      >
+        Checkout securely
       </a>
-      <br />
+      <p className="iv-checkout-note">
+        <svg
+          width="14"
+          height="14"
+          viewBox="0 0 32 32"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          aria-hidden="true"
+        >
+          <rect x="7" y="14" width="18" height="14" />
+          <path d="M11 14V10a5 5 0 0 1 10 0v4" />
+        </svg>
+        Secure checkout · UPI, cards and netbanking
+      </p>
     </div>
   );
 }
@@ -74,30 +162,31 @@ function CartDiscounts({
       ?.map(({code}) => code) || [];
 
   return (
-    <section aria-label="Discounts">
-      {/* Have existing discount, display it with a remove option */}
-      <dl hidden={!codes.length}>
-        <div>
-          <dt id={discountsHeadingId}>Discounts</dt>
-          <UpdateDiscountForm>
-            <div
-              className="cart-discount"
-              role="group"
-              aria-labelledby={discountsHeadingId}
+    <section aria-label="Discounts" className="iv-code-block">
+      {/* Applied discount, with a remove option */}
+      {codes.length ? (
+        <UpdateDiscountForm>
+          <div
+            className="iv-code-applied"
+            role="group"
+            aria-labelledby={discountsHeadingId}
+          >
+            <span id={discountsHeadingId}>Discount</span>
+            <code>{codes.join(', ')}</code>
+            <button
+              type="submit"
+              className="iv-link-btn"
+              aria-label="Remove discount"
             >
-              <code>{codes?.join(', ')}</code>
-              &nbsp;
-              <button type="submit" aria-label="Remove discount">
-                Remove
-              </button>
-            </div>
-          </UpdateDiscountForm>
-        </div>
-      </dl>
+              Remove
+            </button>
+          </div>
+        </UpdateDiscountForm>
+      ) : null}
 
-      {/* Show an input to apply a discount */}
+      {/* Input to apply a discount */}
       <UpdateDiscountForm discountCodes={codes}>
-        <div>
+        <div className="iv-code-row">
           <label htmlFor={discountCodeInputId} className="sr-only">
             Discount code
           </label>
@@ -106,9 +195,13 @@ function CartDiscounts({
             type="text"
             name="discountCode"
             placeholder="Discount code"
+            autoComplete="off"
           />
-          &nbsp;
-          <button type="submit" aria-label="Apply discount code">
+          <button
+            type="submit"
+            className="iv-btn iv-btn--outline"
+            aria-label="Apply discount code"
+          >
             Apply
           </button>
         </div>
@@ -193,12 +286,14 @@ function CartGiftCard({
   };
 
   return (
-    <section aria-label="Gift cards">
+    <section aria-label="Gift cards" className="iv-code-block">
       {giftCardCodes && giftCardCodes.length > 0 && (
         <dl>
-          <dt id={giftCardHeadingId}>Applied Gift Card(s)</dt>
+          <dt id={giftCardHeadingId} className="sr-only">
+            Applied gift cards
+          </dt>
           {giftCardCodes.map((giftCard) => (
-            <dd key={giftCard.id} className="cart-discount">
+            <dd key={giftCard.id} className="iv-code-applied">
               <RemoveGiftCardForm
                 giftCardId={giftCard.id}
                 lastCharacters={giftCard.lastCharacters}
@@ -211,8 +306,8 @@ function CartGiftCard({
                   }
                 }}
               >
-                <code>***{giftCard.lastCharacters}</code>
-                &nbsp;
+                <span>Gift card</span>
+                <code>•••• {giftCard.lastCharacters}</code>
                 <Money data={giftCard.amountUsed} />
               </RemoveGiftCardForm>
             </dd>
@@ -221,7 +316,7 @@ function CartGiftCard({
       )}
 
       <AddGiftCardForm fetcherKey="gift-card-add">
-        <div>
+        <div className="iv-code-row">
           <label htmlFor={giftCardInputId} className="sr-only">
             Gift card code
           </label>
@@ -230,11 +325,12 @@ function CartGiftCard({
             type="text"
             name="giftCardCode"
             placeholder="Gift card code"
+            autoComplete="off"
             ref={giftCardCodeInput}
           />
-          &nbsp;
           <button
             type="submit"
+            className="iv-btn iv-btn--outline"
             disabled={giftCardAddFetcher.state !== 'idle'}
             aria-label="Apply gift card code"
           >
@@ -286,9 +382,9 @@ function RemoveGiftCardForm({
       }}
     >
       {children}
-      &nbsp;
       <button
         type="submit"
+        className="iv-link-btn"
         aria-label={`Remove gift card ending in ${lastCharacters}`}
         onClick={onRemoveClick}
         ref={buttonRef}

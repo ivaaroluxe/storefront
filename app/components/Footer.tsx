@@ -27,9 +27,9 @@ export function Footer({
             />
             <p>
               IVAARO is a premium lifestyle accessory brand inspired by vara, a
-              Sanskrit word meaning a gift, a boon or a blessing. Beginning
-              with pens, IVAARO brings thoughtful presentation and personal
-              meaning to objects chosen for someone you love, or for yourself.
+              Sanskrit word meaning a gift, a boon or a blessing. Beginning with
+              pens, IVAARO brings thoughtful presentation and personal meaning
+              to objects chosen for someone you love, or for yourself.
             </p>
           </div>
           <div className="iv-footer-cols">

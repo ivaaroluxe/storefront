@@ -60,12 +60,27 @@ export function Aside({
       role="dialog"
       aria-labelledby={id}
     >
-      <button className="close-outside" onClick={close} />
-      <aside>
+      <button
+        className="close-outside"
+        onClick={close}
+        aria-label="Close"
+        tabIndex={-1}
+      />
+      <aside className={`iv-aside iv-aside--${type}`}>
         <header>
           <h3 id={id}>{heading}</h3>
-          <button className="close reset" onClick={close} aria-label="Close">
-            &times;
+          <button className="iv-icon-btn" onClick={close} aria-label="Close">
+            <svg
+              width="18"
+              height="18"
+              viewBox="0 0 18 18"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.4"
+              aria-hidden="true"
+            >
+              <path d="M3 3l12 12M15 3L3 15" />
+            </svg>
           </button>
         </header>
         <main>{children}</main>

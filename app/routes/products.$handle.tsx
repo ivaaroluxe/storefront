@@ -1,4 +1,4 @@
-import {redirect, useLoaderData} from 'react-router';
+import {Link, useLoaderData} from 'react-router';
 import type {Route} from './+types/products.$handle';
 import {
   getSelectedProductOptions,
@@ -15,7 +15,14 @@ import {redirectIfHandleIsLocalized} from '~/lib/redirect';
 
 export const meta: Route.MetaFunction = ({data}) => {
   return [
-    {title: `Hydrogen | ${data?.product.title ?? ''}`},
+    {title: `${data?.product.title ?? 'Product'} | IVAARO`},
+    {
+      name: 'description',
+      content:
+        data?.product.seo?.description ||
+        data?.product.description?.slice(0, 155) ||
+        '',
+    },
     {
       rel: 'canonical',
       href: `/products/${data?.product.handle}`,
@@ -95,31 +102,114 @@ export default function Product() {
     selectedOrFirstAvailableVariant: selectedVariant,
   });
 
-  const {title, descriptionHtml} = product;
+  const {title, descriptionHtml, productType} = product;
+  const images = product.images?.nodes ?? [];
 
   return (
-    <div className="product">
-      <ProductImage image={selectedVariant?.image} />
-      <div className="product-main">
-        <h1>{title}</h1>
-        <ProductPrice
-          price={selectedVariant?.price}
-          compareAtPrice={selectedVariant?.compareAtPrice}
-        />
-        <br />
-        <ProductForm
-          productOptions={productOptions}
-          selectedVariant={selectedVariant}
-        />
-        <br />
-        <br />
-        <p>
-          <strong>Description</strong>
-        </p>
-        <br />
-        <div dangerouslySetInnerHTML={{__html: descriptionHtml}} />
-        <br />
+    <div className="iv-pdp">
+      <div className="iv-container">
+        <nav className="iv-breadcrumb" aria-label="Breadcrumb">
+          <Link to="/">Home</Link>
+          <span aria-hidden="true">/</span>
+          <Link to="/collections/all">The pen</Link>
+          <span aria-hidden="true">/</span>
+          <span aria-current="page">{title}</span>
+        </nav>
+        <div className="iv-pdp-grid">
+          <ProductImage
+            image={selectedVariant?.image}
+            images={images}
+            title={title}
+          />
+          <div className="iv-pdp-info">
+            <p className="iv-eyebrow">{productType || 'IVAARO'}</p>
+            <h1 className="iv-pdp-title">{title}</h1>
+            <ProductPrice
+              className="iv-pdp-price"
+              price={selectedVariant?.price}
+              compareAtPrice={selectedVariant?.compareAtPrice}
+            />
+            <p className="iv-pdp-tax">
+              Taxes and delivery are calculated at checkout.
+            </p>
+            <div className="iv-rule" />
+            <ProductForm
+              productOptions={productOptions}
+              selectedVariant={selectedVariant}
+            />
+            <ul className="iv-pdp-assurances">
+              <li>
+                <BoxIcon />
+                <span>Presented in the aubergine IVAARO box</span>
+              </li>
+              <li>
+                <LeafIcon />
+                <span>Add a personal message in your bag</span>
+              </li>
+              <li>
+                <LockIcon />
+                <span>Secure checkout with UPI, cards or netbanking</span>
+              </li>
+            </ul>
+            <div className="iv-accordion">
+              {descriptionHtml ? (
+                <details open>
+                  <summary>Description</summary>
+                  <div
+                    className="iv-rte"
+                    dangerouslySetInnerHTML={{__html: descriptionHtml}}
+                  />
+                </details>
+              ) : null}
+              <details>
+                <summary>In the box</summary>
+                <div className="iv-rte">
+                  <p>
+                    The pen rests in a fitted ivory tray inside the aubergine
+                    presentation box, with a light ivory satin sleeve and a
+                    folded leaf carrying our story and space for your own words.
+                  </p>
+                </div>
+              </details>
+              <details>
+                <summary>Care for what you carry</summary>
+                <div className="iv-rte">
+                  <ul>
+                    <li>Carry the pen in its satin sleeve.</li>
+                    <li>Clean gently with a soft, dry cloth.</li>
+                    <li>Avoid prolonged moisture and abrasive cleaners.</li>
+                    <li>Use a refill confirmed for this pen model.</li>
+                  </ul>
+                </div>
+              </details>
+              <details>
+                <summary>Delivery and returns</summary>
+                <div className="iv-rte">
+                  <p>
+                    Delivery options and charges are shown at checkout before
+                    you pay. Read our{' '}
+                    <Link to="/policies/shipping-policy">shipping policy</Link>{' '}
+                    and <Link to="/policies/refund-policy">refund policy</Link>.
+                  </p>
+                </div>
+              </details>
+            </div>
+          </div>
+        </div>
       </div>
+      <section className="iv-pdp-wish" aria-label="A personal message">
+        <div className="iv-container iv-pdp-wish-inner">
+          <img
+            src="/images/ivaaro-emblem-gold.png"
+            alt=""
+            width={44}
+            height={42}
+            loading="lazy"
+          />
+          <p className="iv-pdp-wish-title">What I wish for you…</p>
+          <p>A few words today. Something to return to.</p>
+        </div>
+      </section>
       <Analytics.ProductView
         data={{
           products: [
@@ -136,6 +226,58 @@ export default function Product() {
         }}
       />
     </div>
+  );
+}
+
+function BoxIcon() {
+  return (
+    <svg
+      width="20"
+      height="20"
+      viewBox="0 0 32 32"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      aria-hidden="true"
+    >
+      <rect x="4" y="11" width="24" height="17" />
+      <path d="M2 7h28v4H2z" />
+      <path d="M16 7v21" />
+    </svg>
+  );
+}
+
+function LeafIcon() {
+  return (
+    <svg
+      width="20"
+      height="20"
+      viewBox="0 0 32 32"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      aria-hidden="true"
+    >
+      <path d="M6 4h14l6 6v18H6z" />
+      <path d="M10 15h12M10 20h12M10 25h7" />
+    </svg>
+  );
+}
+
+function LockIcon() {
+  return (
+    <svg
+      width="20"
+      height="20"
+      viewBox="0 0 32 32"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      aria-hidden="true"
+    >
+      <rect x="7" y="14" width="18" height="14" />
+      <path d="M11 14V10a5 5 0 0 1 10 0v4" />
+    </svg>
   );
 }
 
@@ -184,6 +326,17 @@ const PRODUCT_FRAGMENT = `#graphql
     handle
     descriptionHtml
     description
+    productType
+    images(first: 10) {
+      nodes {
+        __typename
+        id
+        url
+        altText
+        width
+        height
+      }
+    }
     encodedVariantExistence
     encodedVariantAvailability
     options {

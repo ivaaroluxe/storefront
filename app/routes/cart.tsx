@@ -5,7 +5,7 @@ import {CartForm} from '@shopify/hydrogen';
 import {CartMain} from '~/components/CartMain';
 
 export const meta: Route.MetaFunction = () => {
-  return [{title: `Hydrogen | Cart`}];
+  return [{title: 'Your bag | IVAARO'}];
 };
 
 export const headers: HeadersFunction = ({actionHeaders}) => actionHeaders;
@@ -63,6 +63,11 @@ export async function action({request, context}: Route.ActionArgs) {
       result = await cart.removeGiftCardCodes(appliedGiftCardIds);
       break;
     }
+    case CartForm.ACTIONS.NoteUpdate: {
+      const note = String(inputs.note ?? '').slice(0, 300);
+      result = await cart.updateNote(note);
+      break;
+    }
     case CartForm.ACTIONS.BuyerIdentityUpdate: {
       result = await cart.updateBuyerIdentity({
         ...inputs.buyerIdentity,
@@ -105,9 +110,11 @@ export default function Cart() {
   const cart = useLoaderData<typeof loader>();
 
   return (
-    <div className="cart">
-      <h1>Cart</h1>
-      <CartMain layout="page" cart={cart} />
+    <div className="iv-cart-page">
+      <div className="iv-container">
+        <h1 className="iv-cart-page-title">Your bag</h1>
+        <CartMain layout="page" cart={cart} />
+      </div>
     </div>
   );
 }

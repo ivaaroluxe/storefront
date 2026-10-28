@@ -32,77 +32,77 @@ function getLineItemChildrenMap(lines: CartLine[]): LineItemChildrenMap {
   }
   return children;
 }
+
 /**
  * The main cart component that displays the cart items and summary.
- * It is used by both the /cart route and the cart aside dialog.
+ * It is used by both the /cart route and the cart drawer.
  */
 export function CartMain({layout, cart: originalCart}: CartMainProps) {
   // The useOptimisticCart hook applies pending actions to the cart
   // so the user immediately sees feedback when they modify the cart.
   const cart = useOptimisticCart(originalCart);
 
-  const linesCount = Boolean(cart?.lines?.nodes?.length || 0);
-  const withDiscount =
-    cart &&
-    Boolean(cart?.discountCodes?.filter((code) => code.applicable)?.length);
-  const className = `cart-main ${withDiscount ? 'with-discount' : ''}`;
   const cartHasItems = cart?.totalQuantity ? cart.totalQuantity > 0 : false;
   const childrenMap = getLineItemChildrenMap(cart?.lines?.nodes ?? []);
 
+  if (!cartHasItems) {
+    return <CartEmpty layout={layout} />;
+  }
+
   return (
     <section
-      className={className}
-      aria-label={layout === 'page' ? 'Cart page' : 'Cart drawer'}
+      className={`iv-cart iv-cart--${layout}`}
+      aria-label={layout === 'page' ? 'Your bag' : 'Bag drawer'}
     >
-      <CartEmpty hidden={linesCount} layout={layout} />
-      <div className="cart-details">
-        <p id="cart-lines" className="sr-only">
-          Line items
+      <div className="iv-cart-lines">
+        <p id={`cart-lines-${layout}`} className="sr-only">
+          Items in your bag
         </p>
-        <div>
-          <ul aria-labelledby="cart-lines">
-            {(cart?.lines?.nodes ?? []).map((line) => {
-              // we do not render non-parent lines at the root of the cart
-              if (
-                'parentRelationship' in line &&
-                line.parentRelationship?.parent
-              ) {
-                return null;
-              }
-              return (
-                <CartLineItem
-                  key={line.id}
-                  line={line}
-                  layout={layout}
-                  childrenMap={childrenMap}
-                />
-              );
-            })}
-          </ul>
-        </div>
-        {cartHasItems && <CartSummary cart={cart} layout={layout} />}
+        <ul aria-labelledby={`cart-lines-${layout}`}>
+          {(cart?.lines?.nodes ?? []).map((line) => {
+            // we do not render non-parent lines at the root of the cart
+            if (
+              'parentRelationship' in line &&
+              line.parentRelationship?.parent
+            ) {
+              return null;
+            }
+            return (
+              <CartLineItem
+                key={line.id}
+                line={line}
+                layout={layout}
+                childrenMap={childrenMap}
+              />
+            );
+          })}
+        </ul>
       </div>
+      <CartSummary cart={cart} layout={layout} />
     </section>
   );
 }
 
-function CartEmpty({
-  hidden = false,
-}: {
-  hidden: boolean;
-  layout?: CartMainProps['layout'];
-}) {
+function CartEmpty({layout}: {layout: CartLayout}) {
   const {close} = useAside();
   return (
-    <div hidden={hidden}>
-      <br />
-      <p>
-        Looks like you haven&rsquo;t added anything yet, let&rsquo;s get you
-        started!
-      </p>
-      <br />
-      <Link to="/collections" onClick={close} prefetch="viewport">
-        Continue shopping →
+    <div className={`iv-cart-empty iv-cart-empty--${layout}`}>
+      <img
+        src="/images/ivaaro-emblem.png"
+        alt=""
+        width={48}
+        height={46}
+        loading="lazy"
+      />
+      <p className="iv-cart-empty-title">Your bag is empty.</p>
+      <p>Something chosen with care, for someone you love or for yourself.</p>
+      <Link
+        to="/collections/all"
+        onClick={close}
+        prefetch="viewport"
+        className="iv-btn iv-btn--plum"
+      >
+        Discover the pen
       </Link>
     </div>
   );
