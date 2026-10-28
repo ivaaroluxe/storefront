@@ -1829,3 +1829,495 @@ aside.iv-aside > main {
     padding-left: 0;
   }
 }
+
+/* =====================================================================
+ * Product page: A+ story below the buy box
+ * ===================================================================== */
+
+html {
+  scroll-behavior: smooth;
+}
+
+.iv-pdp-more {
+  align-self: flex-start;
+}
+
+.iv-pdp-more::after {
+  content: ' ↓';
+}
+
+.iv-aplus {
+  scroll-margin-top: 120px;
+}
+
+.iv-aplus img {
+  display: block;
+  max-width: 100%;
+}
+
+.iv-ap-section {
+  padding: 104px 0;
+  background: var(--iv-paper);
+}
+
+.iv-ap-section--ivory {
+  background: var(--iv-ivory);
+}
+
+.iv-ap-section--satin {
+  background: var(--iv-sand);
+}
+
+.iv-ap-head {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 10px;
+  margin: 0 auto 56px;
+  max-width: 720px;
+}
+
+.iv-ap-head--left {
+  align-items: flex-start;
+  text-align: left;
+  margin: 0;
+}
+
+/* 1. Banner */
+.iv-ap-banner {
+  background: var(--iv-plum);
+  color: var(--iv-on-plum);
+  padding: 96px 0 0;
+  overflow: hidden;
+}
+
+.iv-ap-banner-inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 18px;
+}
+
+.iv-ap-from {
+  font-size: 11px;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--iv-gold);
+}
+
+.iv-ap-banner-logo {
+  width: 150px;
+  height: auto;
+}
+
+.iv-ap-banner-title {
+  margin: 12px 0 0;
+  font-family: var(--iv-serif);
+  font-weight: 500;
+  font-style: italic;
+  font-size: clamp(44px, 6vw, 76px);
+  line-height: 1.05;
+  color: var(--iv-ivory);
+}
+
+.iv-ap-banner-text {
+  max-width: 520px;
+  font-size: 17px;
+  line-height: 1.6;
+}
+
+.iv-ap-pen {
+  margin-top: 64px;
+  background: linear-gradient(var(--iv-plum) 0 30%, #f6f1e9 30% 100%);
+  padding: 0 24px 48px;
+}
+
+.iv-ap-pen img {
+  width: 100%;
+  max-width: 1280px;
+  height: auto;
+  margin: 0 auto;
+  box-shadow: 0 30px 60px -30px rgba(39, 25, 37, 0.5);
+}
+
+/* 2. Feature tiles */
+.iv-ap-tiles {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 32px;
+}
+
+.iv-ap-tile {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.iv-ap-tile-media {
+  aspect-ratio: 4 / 3;
+  overflow: hidden;
+  background: var(--iv-sand);
+  margin-bottom: 8px;
+}
+
+.iv-ap-tile-media img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 600ms ease;
+}
+
+.iv-ap-tile:hover .iv-ap-tile-media img {
+  transform: scale(1.04);
+}
+
+.iv-ap-tile h3,
+.iv-ap-box h3 {
+  margin: 0;
+  font-family: var(--iv-serif);
+  font-weight: 500;
+  font-size: 26px;
+  line-height: 1.2;
+}
+
+.iv-ap-tile p,
+.iv-ap-box p {
+  color: var(--iv-muted);
+  font-size: 15px;
+  line-height: 1.6;
+}
+
+/* 3–4. Splits */
+.iv-ap-split {
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+  gap: 72px;
+  align-items: center;
+}
+
+.iv-ap-split--reverse .iv-ap-split-media {
+  order: 2;
+}
+
+.iv-ap-split-media {
+  overflow: hidden;
+  background: var(--iv-sand);
+}
+
+.iv-ap-split-media img {
+  width: 100%;
+  height: auto;
+}
+
+.iv-ap-split-media--paper {
+  padding: 48px;
+}
+
+.iv-ap-split-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.iv-ap-split-copy > p:not(.iv-eyebrow):not(.iv-leaf-note) {
+  color: var(--iv-muted);
+  line-height: 1.7;
+}
+
+.iv-ap-steps {
+  list-style: none;
+  margin: 8px 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.iv-ap-steps li {
+  display: flex;
+  gap: 20px;
+  align-items: baseline;
+  margin: 0;
+  padding: 14px 0;
+  border-top: 1px solid var(--iv-line);
+  font-size: 15px;
+  color: var(--iv-muted);
+}
+
+.iv-ap-steps li:last-child {
+  border-bottom: 1px solid var(--iv-line);
+}
+
+.iv-ap-steps strong {
+  color: var(--iv-ink);
+  font-weight: 500;
+}
+
+.iv-ap-step-num,
+.iv-ap-box-num {
+  font-family: var(--iv-serif);
+  font-size: 20px;
+  color: #8a6a3b;
+  flex: none;
+}
+
+.iv-ap-hint {
+  font-size: 13px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+/* 5. In the box */
+.iv-ap-box {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 24px;
+}
+
+.iv-ap-box li {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  background: var(--iv-paper);
+  padding: 0 0 24px;
+}
+
+.iv-ap-box li > *:not(.iv-ap-box-media) {
+  padding: 0 20px;
+}
+
+.iv-ap-box-media {
+  aspect-ratio: 1 / 1;
+  overflow: hidden;
+  margin-bottom: 12px;
+}
+
+.iv-ap-box-media img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.iv-ap-box-num {
+  font-size: 16px;
+}
+
+.iv-ap-box h3 {
+  font-size: 22px;
+}
+
+/* 6. Gift or self */
+.iv-ap-compare {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 24px;
+}
+
+.iv-ap-card {
+  padding: 48px;
+  background: var(--iv-ivory);
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  color: var(--iv-muted);
+  line-height: 1.7;
+}
+
+.iv-ap-card--plum {
+  background: var(--iv-plum);
+  color: var(--iv-on-plum);
+}
+
+.iv-ap-card-kicker {
+  font-size: 12px;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: #8a6a3b;
+}
+
+.iv-ap-card--plum .iv-ap-card-kicker {
+  color: var(--iv-gold);
+}
+
+.iv-ap-card-lead {
+  font-family: var(--iv-serif);
+  font-size: clamp(24px, 3vw, 32px);
+  line-height: 1.3;
+  color: var(--iv-plum);
+}
+
+.iv-quotes--light {
+  color: var(--iv-ivory);
+}
+
+/* 7. Care */
+.iv-ap-care {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 32px;
+}
+
+.iv-ap-care li {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 16px;
+  font-size: 15px;
+  line-height: 1.6;
+  color: var(--iv-muted);
+}
+
+.iv-ap-care svg {
+  color: var(--iv-plum);
+  width: 56px;
+  height: 56px;
+  padding: 12px;
+  border: 1px solid var(--iv-gold);
+  border-radius: 50%;
+  box-sizing: border-box;
+}
+
+/* 8. Specs */
+.iv-ap-specs-wrap {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 2fr);
+  gap: 56px;
+  align-items: start;
+}
+
+.iv-ap-specs {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 15px;
+}
+
+.iv-ap-specs th,
+.iv-ap-specs td {
+  text-align: left;
+  padding: 16px 0;
+  border-bottom: 1px solid var(--iv-line);
+  vertical-align: top;
+}
+
+.iv-ap-specs tr:first-child th,
+.iv-ap-specs tr:first-child td {
+  border-top: 1px solid var(--iv-line);
+}
+
+.iv-ap-specs th {
+  width: 34%;
+  font-weight: 400;
+  font-size: 12px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--iv-muted);
+  padding-right: 24px;
+}
+
+/* 9. Brand story */
+.iv-ap-story {
+  background: var(--iv-plum);
+  color: var(--iv-on-plum);
+  padding: 96px 0;
+}
+
+.iv-ap-story-inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 18px;
+  max-width: 640px;
+}
+
+.iv-ap-story-title {
+  margin: 0;
+  font-family: var(--iv-serif);
+  font-weight: 500;
+  font-size: clamp(34px, 4vw, 48px);
+  color: var(--iv-ivory);
+}
+
+.iv-ap-story .iv-text-link {
+  color: var(--iv-ivory);
+}
+
+.iv-ap-story-sign {
+  margin-top: 12px;
+  font-family: var(--iv-serif);
+  font-style: italic;
+  font-size: 20px;
+  color: var(--iv-gold);
+}
+
+/* Responsive */
+@media (max-width: 960px) {
+  .iv-ap-section {
+    padding: 72px 0;
+  }
+
+  .iv-ap-tiles {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 40px;
+  }
+
+  .iv-ap-split,
+  .iv-ap-specs-wrap {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 32px;
+  }
+
+  .iv-ap-split--reverse .iv-ap-split-media {
+    order: 0;
+  }
+
+  .iv-ap-box,
+  .iv-ap-care {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .iv-ap-compare {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 560px) {
+  .iv-ap-banner {
+    padding-top: 64px;
+  }
+
+  .iv-ap-pen {
+    margin-top: 40px;
+    padding: 0 12px 32px;
+  }
+
+  .iv-ap-split-media--paper {
+    padding: 24px;
+  }
+
+  .iv-ap-card {
+    padding: 32px 24px;
+  }
+
+  .iv-ap-box {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .iv-ap-care {
+    gap: 28px 16px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  .iv-ap-tile-media img {
+    transition: none;
+  }
+}

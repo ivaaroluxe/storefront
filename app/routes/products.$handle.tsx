@@ -11,6 +11,7 @@ import {
 import {ProductPrice} from '~/components/ProductPrice';
 import {ProductImage} from '~/components/ProductImage';
 import {ProductForm} from '~/components/ProductForm';
+import {ProductStory} from '~/components/ProductStory';
 import {redirectIfHandleIsLocalized} from '~/lib/redirect';
 
 export const meta: Route.MetaFunction = ({data}) => {
@@ -162,27 +163,6 @@ export default function Product() {
                 </details>
               ) : null}
               <details>
-                <summary>In the box</summary>
-                <div className="iv-rte">
-                  <p>
-                    The pen rests in a fitted ivory tray inside the aubergine
-                    presentation box, with a light ivory satin sleeve and a
-                    folded leaf carrying our story and space for your own words.
-                  </p>
-                </div>
-              </details>
-              <details>
-                <summary>Care for what you carry</summary>
-                <div className="iv-rte">
-                  <ul>
-                    <li>Carry the pen in its satin sleeve.</li>
-                    <li>Clean gently with a soft, dry cloth.</li>
-                    <li>Avoid prolonged moisture and abrasive cleaners.</li>
-                    <li>Use a refill confirmed for this pen model.</li>
-                  </ul>
-                </div>
-              </details>
-              <details>
                 <summary>Delivery and returns</summary>
                 <div className="iv-rte">
                   <p>
@@ -194,22 +174,17 @@ export default function Product() {
                 </div>
               </details>
             </div>
+            <a href="#details" className="iv-text-link iv-pdp-more">
+              Explore the details
+            </a>
           </div>
         </div>
       </div>
-      <section className="iv-pdp-wish" aria-label="A personal message">
-        <div className="iv-container iv-pdp-wish-inner">
-          <img
-            src="/images/ivaaro-emblem-gold.png"
-            alt=""
-            width={44}
-            height={42}
-            loading="lazy"
-          />
-          <p className="iv-pdp-wish-title">What I wish for you…</p>
-          <p>A few words today. Something to return to.</p>
-        </div>
-      </section>
+      <ProductStory
+        title={title}
+        productType={productType}
+        sku={selectedVariant?.sku}
+      />
       <Analytics.ProductView
         data={{
           products: [
