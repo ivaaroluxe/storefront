@@ -17,6 +17,12 @@ interface HeaderProps {
 
 type Viewport = 'desktop' | 'mobile';
 
+/**
+ * Text for the thin plum strip above the header.
+ * Leave it empty ('') to hide the strip.
+ */
+const ANNOUNCEMENT = '';
+
 export function Header({
   header,
   isLoggedIn,
@@ -25,18 +31,40 @@ export function Header({
 }: HeaderProps) {
   const {shop, menu} = header;
   return (
-    <header className="header">
-      <NavLink prefetch="intent" to="/" style={activeLinkStyle} end>
-        <strong>{shop.name}</strong>
-      </NavLink>
-      <HeaderMenu
-        menu={menu}
-        viewport="desktop"
-        primaryDomainUrl={header.shop.primaryDomain.url}
-        publicStoreDomain={publicStoreDomain}
-      />
-      <HeaderCtas isLoggedIn={isLoggedIn} cart={cart} />
-    </header>
+    <>
+      {ANNOUNCEMENT ? (
+        <div className="iv-announcement">{ANNOUNCEMENT}</div>
+      ) : null}
+      <header className="iv-header">
+        <div className="iv-container iv-header-bar">
+          <div className="iv-header-side">
+            <HeaderMenuMobileToggle />
+            <SearchToggle />
+          </div>
+          <NavLink
+            prefetch="intent"
+            to="/"
+            end
+            className="iv-logo"
+            aria-label={`${shop.name} home`}
+          >
+            <img src="/images/ivaaro-logo.png" alt={shop.name} />
+          </NavLink>
+          <div className="iv-header-side iv-header-side--end">
+            <AccountLink isLoggedIn={isLoggedIn} />
+            <CartToggle cart={cart} />
+          </div>
+        </div>
+        <div className="iv-container">
+          <HeaderMenu
+            menu={menu}
+            viewport="desktop"
+            primaryDomainUrl={header.shop.primaryDomain.url}
+            publicStoreDomain={publicStoreDomain}
+          />
+        </div>
+      </header>
+    </>
   );
 }
 
@@ -51,19 +79,15 @@ export function HeaderMenu({
   viewport: Viewport;
   publicStoreDomain: HeaderProps['publicStoreDomain'];
 }) {
-  const className = `header-menu-${viewport}`;
   const {close} = useAside();
 
   return (
-    <nav className={className} role="navigation">
+    <nav
+      className={`iv-nav iv-nav--${viewport}`}
+      aria-label={viewport === 'desktop' ? 'Main' : 'Mobile'}
+    >
       {viewport === 'mobile' && (
-        <NavLink
-          end
-          onClick={close}
-          prefetch="intent"
-          style={activeLinkStyle}
-          to="/"
-        >
+        <NavLink end onClick={close} prefetch="intent" to="/">
           Home
         </NavLink>
       )}
@@ -79,12 +103,10 @@ export function HeaderMenu({
             : item.url;
         return (
           <NavLink
-            className="header-menu-item"
             end
             key={item.id}
             onClick={close}
             prefetch="intent"
-            style={activeLinkStyle}
             to={url}
           >
             {item.title}
@@ -95,34 +117,26 @@ export function HeaderMenu({
   );
 }
 
-function HeaderCtas({
-  isLoggedIn,
-  cart,
-}: Pick<HeaderProps, 'isLoggedIn' | 'cart'>) {
-  return (
-    <nav className="header-ctas" role="navigation">
-      <HeaderMenuMobileToggle />
-      <NavLink prefetch="intent" to="/account" style={activeLinkStyle}>
-        <Suspense fallback="Sign in">
-          <Await resolve={isLoggedIn} errorElement="Sign in">
-            {(isLoggedIn) => (isLoggedIn ? 'Account' : 'Sign in')}
-          </Await>
-        </Suspense>
-      </NavLink>
-      <SearchToggle />
-      <CartToggle cart={cart} />
-    </nav>
-  );
-}
-
 function HeaderMenuMobileToggle() {
   const {open} = useAside();
   return (
     <button
-      className="header-menu-mobile-toggle reset"
+      type="button"
+      className="iv-icon-btn iv-mobile-toggle"
       onClick={() => open('mobile')}
+      aria-label="Open menu"
     >
-      <h3>☰</h3>
+      <svg
+        width="22"
+        height="22"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        aria-hidden="true"
+      >
+        <path d="M3 7h18M3 12h18M3 17h18" />
+      </svg>
     </button>
   );
 }
@@ -130,9 +144,69 @@ function HeaderMenuMobileToggle() {
 function SearchToggle() {
   const {open} = useAside();
   return (
-    <button className="reset" onClick={() => open('search')}>
-      Search
+    <button
+      type="button"
+      className="iv-icon-btn"
+      onClick={() => open('search')}
+      aria-label="Search"
+    >
+      <svg
+        width="20"
+        height="20"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        aria-hidden="true"
+      >
+        <circle cx="11" cy="11" r="7" />
+        <path d="M20 20l-4-4" />
+      </svg>
     </button>
+  );
+}
+
+function AccountLink({isLoggedIn}: Pick<HeaderProps, 'isLoggedIn'>) {
+  const icon = (
+    <svg
+      width="20"
+      height="20"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      aria-hidden="true"
+    >
+      <circle cx="12" cy="8" r="4" />
+      <path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6" />
+    </svg>
+  );
+  return (
+    <Suspense
+      fallback={
+        <NavLink
+          prefetch="intent"
+          to="/account"
+          className="iv-icon-btn"
+          aria-label="Sign in"
+        >
+          {icon}
+        </NavLink>
+      }
+    >
+      <Await resolve={isLoggedIn} errorElement={null}>
+        {(loggedIn) => (
+          <NavLink
+            prefetch="intent"
+            to="/account"
+            className="iv-icon-btn"
+            aria-label={loggedIn ? 'Account' : 'Sign in'}
+          >
+            {icon}
+          </NavLink>
+        )}
+      </Await>
+    </Suspense>
   );
 }
 
@@ -143,6 +217,8 @@ function CartBadge({count}: {count: number}) {
   return (
     <a
       href="/cart"
+      className="iv-icon-btn"
+      aria-label={`Cart, ${count} ${count === 1 ? 'item' : 'items'}`}
       onClick={(e) => {
         e.preventDefault();
         open('cart');
@@ -154,7 +230,23 @@ function CartBadge({count}: {count: number}) {
         } as CartViewPayload);
       }}
     >
-      Cart <span aria-label={`(items: ${count})`}>{count}</span>
+      <svg
+        width="20"
+        height="20"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        aria-hidden="true"
+      >
+        <path d="M6 8h12l-1 12H7L6 8z" />
+        <path d="M9 8V6a3 3 0 0 1 6 0v2" />
+      </svg>
+      {count > 0 ? (
+        <span className="iv-cart-count" aria-hidden="true">
+          {count}
+        </span>
+      ) : null}
     </a>
   );
 }
@@ -175,11 +267,24 @@ function CartBanner() {
   return <CartBadge count={cart?.totalQuantity ?? 0} />;
 }
 
+/**
+ * Used only until a "main-menu" navigation is set up in Shopify
+ * (Online Store › Navigation). Once that menu exists, its links show instead.
+ */
 const FALLBACK_HEADER_MENU = {
-  id: 'gid://shopify/Menu/199655587896',
+  id: 'ivaaro-fallback-menu',
   items: [
     {
-      id: 'gid://shopify/MenuItem/461609500728',
+      id: 'ivaaro-shop-all',
+      resourceId: null,
+      tags: [],
+      title: 'Shop all',
+      type: 'HTTP',
+      url: '/collections/all',
+      items: [],
+    },
+    {
+      id: 'ivaaro-collections',
       resourceId: null,
       tags: [],
       title: 'Collections',
@@ -188,44 +293,22 @@ const FALLBACK_HEADER_MENU = {
       items: [],
     },
     {
-      id: 'gid://shopify/MenuItem/461609533496',
+      id: 'ivaaro-story',
       resourceId: null,
       tags: [],
-      title: 'Blog',
-      type: 'HTTP',
-      url: '/blogs/journal',
-      items: [],
-    },
-    {
-      id: 'gid://shopify/MenuItem/461609566264',
-      resourceId: null,
-      tags: [],
-      title: 'Policies',
-      type: 'HTTP',
-      url: '/policies',
-      items: [],
-    },
-    {
-      id: 'gid://shopify/MenuItem/461609599032',
-      resourceId: 'gid://shopify/Page/92591030328',
-      tags: [],
-      title: 'About',
+      title: 'Our story',
       type: 'PAGE',
       url: '/pages/about',
       items: [],
     },
+    {
+      id: 'ivaaro-contact',
+      resourceId: null,
+      tags: [],
+      title: 'Contact',
+      type: 'PAGE',
+      url: '/pages/contact',
+      items: [],
+    },
   ],
 };
-
-function activeLinkStyle({
-  isActive,
-  isPending,
-}: {
-  isActive: boolean;
-  isPending: boolean;
-}) {
-  return {
-    fontWeight: isActive ? 'bold' : undefined,
-    color: isPending ? 'grey' : 'black',
-  };
-}

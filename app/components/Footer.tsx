@@ -13,43 +13,91 @@ export function Footer({
   header,
   publicStoreDomain,
 }: FooterProps) {
+  const year = new Date().getFullYear();
   return (
-    <Suspense>
-      <Await resolve={footerPromise}>
-        {(footer) => (
-          <footer className="footer">
-            {footer?.menu && header.shop.primaryDomain?.url && (
-              <FooterMenu
-                menu={footer.menu}
-                primaryDomainUrl={header.shop.primaryDomain.url}
-                publicStoreDomain={publicStoreDomain}
-              />
-            )}
-          </footer>
-        )}
-      </Await>
-    </Suspense>
+    <footer className="iv-footer">
+      <div className="iv-container">
+        <div className="iv-footer-top">
+          <div className="iv-footer-brand">
+            <img src="/images/ivaaro-logo.png" alt={header.shop.name} />
+            <p>
+              Writing instruments, presented to be remembered. Every pen
+              arrives gift-ready in our plum presentation box.
+            </p>
+          </div>
+          <div className="iv-footer-cols">
+            <nav className="iv-footer-col" aria-label="Shop">
+              <span className="iv-footer-col-title">Shop</span>
+              <NavLink prefetch="intent" to="/collections/all">
+                All pens
+              </NavLink>
+              <NavLink prefetch="intent" to="/collections">
+                Collections
+              </NavLink>
+              <NavLink prefetch="intent" to="/search">
+                Search
+              </NavLink>
+            </nav>
+            <nav className="iv-footer-col" aria-label="Help">
+              <span className="iv-footer-col-title">Help</span>
+              <NavLink prefetch="intent" to="/account">
+                Your account and orders
+              </NavLink>
+              <NavLink prefetch="intent" to="/pages/contact">
+                Contact us
+              </NavLink>
+              <NavLink prefetch="intent" to="/pages/about">
+                Our story
+              </NavLink>
+            </nav>
+            <Suspense fallback={<PolicyLinks />}>
+              <Await resolve={footerPromise} errorElement={<PolicyLinks />}>
+                {(footer) => (
+                  <PolicyLinks
+                    menu={footer?.menu}
+                    primaryDomainUrl={header.shop.primaryDomain?.url}
+                    publicStoreDomain={publicStoreDomain}
+                  />
+                )}
+              </Await>
+            </Suspense>
+          </div>
+        </div>
+        <div className="iv-footer-bottom">
+          <span>
+            © {year} {header.shop.name}. All rights reserved.
+          </span>
+          <span className="iv-footer-tagline">For the days ahead.</span>
+        </div>
+      </div>
+    </footer>
   );
 }
 
-function FooterMenu({
+/**
+ * Shows the "footer" menu from Shopify (Online Store › Navigation) when it
+ * exists, otherwise links to the standard policy pages.
+ */
+function PolicyLinks({
   menu,
   primaryDomainUrl,
   publicStoreDomain,
 }: {
-  menu: FooterQuery['menu'];
-  primaryDomainUrl: FooterProps['header']['shop']['primaryDomain']['url'];
-  publicStoreDomain: string;
+  menu?: FooterQuery['menu'];
+  primaryDomainUrl?: string;
+  publicStoreDomain?: string;
 }) {
+  const items = (menu || FALLBACK_FOOTER_MENU).items;
   return (
-    <nav className="footer-menu" role="navigation">
-      {(menu || FALLBACK_FOOTER_MENU).items.map((item) => {
+    <nav className="iv-footer-col" aria-label="Policies">
+      <span className="iv-footer-col-title">Policies</span>
+      {items.map((item) => {
         if (!item.url) return null;
         // if the url is internal, we strip the domain
         const url =
           item.url.includes('myshopify.com') ||
-          item.url.includes(publicStoreDomain) ||
-          item.url.includes(primaryDomainUrl)
+          (publicStoreDomain && item.url.includes(publicStoreDomain)) ||
+          (primaryDomainUrl && item.url.includes(primaryDomainUrl))
             ? new URL(item.url).pathname
             : item.url;
         const isExternal = !url.startsWith('/');
@@ -58,13 +106,7 @@ function FooterMenu({
             {item.title}
           </a>
         ) : (
-          <NavLink
-            end
-            key={item.id}
-            prefetch="intent"
-            style={activeLinkStyle}
-            to={url}
-          >
+          <NavLink end key={item.id} prefetch="intent" to={url}>
             {item.title}
           </NavLink>
         );
@@ -74,56 +116,43 @@ function FooterMenu({
 }
 
 const FALLBACK_FOOTER_MENU = {
-  id: 'gid://shopify/Menu/199655620664',
+  id: 'ivaaro-fallback-footer',
   items: [
     {
-      id: 'gid://shopify/MenuItem/461633060920',
-      resourceId: 'gid://shopify/ShopPolicy/23358046264',
+      id: 'ivaaro-privacy',
+      resourceId: null,
       tags: [],
-      title: 'Privacy Policy',
+      title: 'Privacy policy',
       type: 'SHOP_POLICY',
       url: '/policies/privacy-policy',
       items: [],
     },
     {
-      id: 'gid://shopify/MenuItem/461633093688',
-      resourceId: 'gid://shopify/ShopPolicy/23358013496',
+      id: 'ivaaro-refund',
+      resourceId: null,
       tags: [],
-      title: 'Refund Policy',
+      title: 'Refund policy',
       type: 'SHOP_POLICY',
       url: '/policies/refund-policy',
       items: [],
     },
     {
-      id: 'gid://shopify/MenuItem/461633126456',
-      resourceId: 'gid://shopify/ShopPolicy/23358111800',
+      id: 'ivaaro-shipping',
+      resourceId: null,
       tags: [],
-      title: 'Shipping Policy',
+      title: 'Shipping policy',
       type: 'SHOP_POLICY',
       url: '/policies/shipping-policy',
       items: [],
     },
     {
-      id: 'gid://shopify/MenuItem/461633159224',
-      resourceId: 'gid://shopify/ShopPolicy/23358079032',
+      id: 'ivaaro-terms',
+      resourceId: null,
       tags: [],
-      title: 'Terms of Service',
+      title: 'Terms of service',
       type: 'SHOP_POLICY',
       url: '/policies/terms-of-service',
       items: [],
     },
   ],
 };
-
-function activeLinkStyle({
-  isActive,
-  isPending,
-}: {
-  isActive: boolean;
-  isPending: boolean;
-}) {
-  return {
-    fontWeight: isActive ? 'bold' : undefined,
-    color: isPending ? 'grey' : 'white',
-  };
-}
