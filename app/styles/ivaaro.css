@@ -1,26 +1,36 @@
 /*
- * Ivaaro brand styles
- * Plum, ivory and gold, with Cormorant Garamond for headings and Jost for text.
+ * IVAARO brand styles, following the Brand Story & Identity proposal
+ * (29 October 2026).
+ *
+ * Palette (on-screen values from the brand book):
+ *   Aubergine       #352332  primary brand fields
+ *   Warm ivory      #F3EEE7  spacious backgrounds
+ *   Champagne gold  #C6A46C  emblem, wordmark and restrained detail only
+ *   Ivory satin     #F1E8DA  light accent surfaces
+ *
+ * Type: a calm serif for short headings (Cormorant Garamond) and a clear
+ * sans serif for longer text (Jost). The IVAARO wordmark is always the
+ * supplied artwork, never retyped in a font.
  */
 
 :root {
-  --iv-plum: #3a1c37;
-  --iv-plum-deep: #2a1328;
-  --iv-gold: #c29b57;
-  --iv-ivory: #f6f1e7;
-  --iv-paper: #fbf8f2;
-  --iv-sand: #f3ece1;
-  --iv-line: #e8e0d4;
-  --iv-ink: #1a1418;
-  --iv-muted: #5c5259;
-  --iv-on-plum: #e4d9cc;
+  --iv-plum: #352332; /* Aubergine */
+  --iv-plum-deep: #271925;
+  --iv-gold: #c6a46c; /* Champagne gold */
+  --iv-ivory: #f3eee7; /* Warm ivory */
+  --iv-paper: #fbf8f3;
+  --iv-sand: #f1e8da; /* Ivory satin */
+  --iv-line: #e3d9cb;
+  --iv-ink: #2a1d28;
+  --iv-muted: #665963;
+  --iv-on-plum: #e6dccf;
   --iv-serif: 'Cormorant Garamond', Georgia, 'Times New Roman', serif;
   --iv-sans: 'Jost', system-ui, -apple-system, 'Segoe UI', sans-serif;
   --header-height: 72px;
 }
 
 body {
-  background: var(--iv-paper);
+  background: var(--iv-ivory);
   color: var(--iv-ink);
   font-family: var(--iv-sans);
 }
@@ -143,7 +153,7 @@ img {
 /* ---------- Header ---------- */
 
 .iv-header {
-  background: #fff;
+  background: var(--iv-paper);
   border-bottom: 1px solid var(--iv-line);
   position: sticky;
   top: 0;
@@ -209,7 +219,7 @@ img {
 }
 
 .iv-logo img {
-  height: 28px;
+  height: 30px;
   width: auto;
 }
 
@@ -509,7 +519,7 @@ img {
 .iv-promises {
   border-top: 1px solid var(--iv-line);
   border-bottom: 1px solid var(--iv-line);
-  background: #fff;
+  background: var(--iv-paper);
   padding: 56px 0;
 }
 
@@ -590,11 +600,9 @@ img {
 }
 
 .iv-footer-brand img {
-  height: 22px;
+  height: 72px;
   width: auto;
   align-self: flex-start;
-  filter: brightness(0) invert(1);
-  opacity: 0.92;
 }
 
 .iv-footer-brand p {
@@ -649,6 +657,185 @@ img {
   font-style: italic;
   font-size: 17px;
   color: var(--iv-ivory);
+}
+
+/* ---------- The pen ---------- */
+
+.iv-pen {
+  background: var(--iv-paper);
+  padding: 112px 0 96px;
+  text-align: center;
+}
+
+.iv-pen-head {
+  max-width: 640px;
+  margin: 0 auto 56px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+}
+
+.iv-pen-head p:not(.iv-eyebrow) {
+  color: var(--iv-muted);
+  line-height: 1.6;
+}
+
+.iv-pen-strip {
+  display: block;
+  width: 100%;
+  max-width: 1200px;
+  height: auto;
+  margin: 0 auto;
+}
+
+.iv-pen-details {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 40px;
+  max-width: 1000px;
+  margin: 56px auto 0;
+  text-align: left;
+}
+
+.iv-pen-detail {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  border-top: 1px solid var(--iv-gold);
+  padding-top: 20px;
+}
+
+.iv-pen-detail h3 {
+  margin: 0;
+  font-family: var(--iv-serif);
+  font-weight: 500;
+  font-size: 24px;
+  line-height: 1.2;
+}
+
+.iv-pen-detail p {
+  color: var(--iv-muted);
+  font-size: 15px;
+  line-height: 1.6;
+}
+
+/* ---------- Story quotes ---------- */
+
+.iv-quotes {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-family: var(--iv-serif);
+  font-size: clamp(24px, 3vw, 32px);
+  line-height: 1.3;
+  color: var(--iv-plum);
+}
+
+/* ---------- Meaning ---------- */
+
+.iv-meaning {
+  background: var(--iv-plum);
+  color: var(--iv-on-plum);
+  padding: 112px 0;
+}
+
+.iv-meaning .iv-split {
+  align-items: center;
+}
+
+.iv-meaning-mark {
+  flex: 0 1 320px;
+  min-width: 0;
+  display: flex;
+  justify-content: center;
+}
+
+.iv-meaning-mark img {
+  width: min(220px, 60vw);
+  height: auto;
+}
+
+.iv-meaning .iv-eyebrow {
+  color: var(--iv-gold);
+}
+
+.iv-meaning .iv-heading {
+  color: var(--iv-ivory);
+}
+
+.iv-meaning .iv-split-copy p:not(.iv-eyebrow) {
+  color: var(--iv-on-plum);
+}
+
+.iv-meaning .iv-text-link {
+  color: var(--iv-ivory);
+  align-self: flex-start;
+}
+
+.iv-fine-print {
+  font-size: 13px;
+  opacity: 0.85;
+}
+
+/* ---------- Message leaf ---------- */
+
+.iv-leaf-media {
+  aspect-ratio: auto;
+  background: var(--iv-sand);
+  padding: 40px;
+  box-sizing: border-box;
+}
+
+.iv-leaf-media img {
+  position: static;
+  width: 100%;
+  height: auto;
+  object-fit: contain;
+}
+
+.iv-leaf-note {
+  font-family: var(--iv-serif);
+  font-style: italic;
+  font-size: 22px;
+  color: var(--iv-plum);
+}
+
+/* ---------- Our story page ---------- */
+
+.iv-story-page {
+  padding: 96px 0 120px;
+}
+
+.iv-story-page .iv-prose {
+  max-width: 680px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  font-size: 18px;
+  line-height: 1.7;
+}
+
+.iv-story-page h1 {
+  margin: 0 0 8px;
+  font-family: var(--iv-serif);
+  font-weight: 500;
+  font-size: clamp(44px, 5vw, 64px);
+  line-height: 1.05;
+}
+
+.iv-story-page .iv-signoff {
+  font-family: var(--iv-serif);
+  font-size: clamp(28px, 3.4vw, 36px);
+  line-height: 1.2;
+  color: var(--iv-plum);
+  margin-top: 16px;
+}
+
+.iv-story-emblem {
+  width: 56px;
+  height: auto;
 }
 
 /* Visually hidden, still read by screen readers */

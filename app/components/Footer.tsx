@@ -19,20 +19,27 @@ export function Footer({
       <div className="iv-container">
         <div className="iv-footer-top">
           <div className="iv-footer-brand">
-            <img src="/images/ivaaro-logo.png" alt={header.shop.name} />
+            <img
+              src="/images/ivaaro-logo-stacked-gold.png"
+              alt="IVAARO"
+              width={152}
+              height={72}
+            />
             <p>
-              Writing instruments, presented to be remembered. Every pen
-              arrives gift-ready in our plum presentation box.
+              IVAARO is a premium lifestyle accessory brand inspired by vara, a
+              Sanskrit word meaning a gift, a boon or a blessing. Beginning
+              with pens, IVAARO brings thoughtful presentation and personal
+              meaning to objects chosen for someone you love, or for yourself.
             </p>
           </div>
           <div className="iv-footer-cols">
             <nav className="iv-footer-col" aria-label="Shop">
               <span className="iv-footer-col-title">Shop</span>
               <NavLink prefetch="intent" to="/collections/all">
-                All pens
+                The pen
               </NavLink>
-              <NavLink prefetch="intent" to="/collections">
-                Collections
+              <NavLink prefetch="intent" to="/#gifting">
+                Gifting
               </NavLink>
               <NavLink prefetch="intent" to="/search">
                 Search
@@ -46,7 +53,7 @@ export function Footer({
               <NavLink prefetch="intent" to="/pages/contact">
                 Contact us
               </NavLink>
-              <NavLink prefetch="intent" to="/pages/about">
+              <NavLink prefetch="intent" to="/our-story">
                 Our story
               </NavLink>
             </nav>
@@ -64,10 +71,8 @@ export function Footer({
           </div>
         </div>
         <div className="iv-footer-bottom">
-          <span>
-            © {year} {header.shop.name}. All rights reserved.
-          </span>
-          <span className="iv-footer-tagline">For the days ahead.</span>
+          <span>© {year} IVAARO. All rights reserved.</span>
+          <span className="iv-footer-tagline">IVAARO. For the days ahead.</span>
         </div>
       </div>
     </footer>

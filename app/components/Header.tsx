@@ -48,7 +48,12 @@ export function Header({
             className="iv-logo"
             aria-label={`${shop.name} home`}
           >
-            <img src="/images/ivaaro-logo.png" alt={shop.name} />
+            <img
+              src="/images/ivaaro-logo-horizontal.png"
+              alt="IVAARO"
+              width={183}
+              height={30}
+            />
           </NavLink>
           <div className="iv-header-side iv-header-side--end">
             <AccountLink isLoggedIn={isLoggedIn} />
@@ -275,21 +280,21 @@ const FALLBACK_HEADER_MENU = {
   id: 'ivaaro-fallback-menu',
   items: [
     {
-      id: 'ivaaro-shop-all',
+      id: 'ivaaro-shop',
       resourceId: null,
       tags: [],
-      title: 'Shop all',
+      title: 'The pen',
       type: 'HTTP',
       url: '/collections/all',
       items: [],
     },
     {
-      id: 'ivaaro-collections',
+      id: 'ivaaro-gifting',
       resourceId: null,
       tags: [],
-      title: 'Collections',
+      title: 'Gifting',
       type: 'HTTP',
-      url: '/collections',
+      url: '/#gifting',
       items: [],
     },
     {
@@ -297,8 +302,8 @@ const FALLBACK_HEADER_MENU = {
       resourceId: null,
       tags: [],
       title: 'Our story',
-      type: 'PAGE',
-      url: '/pages/about',
+      type: 'HTTP',
+      url: '/our-story',
       items: [],
     },
     {
