@@ -23,6 +23,14 @@ export default async function handleRequest(
     // These are added to Hydrogen's default policy, not replacing it.
     styleSrc: ['https://fonts.googleapis.com'],
     fontSrc: ["'self'", 'https://fonts.gstatic.com'],
+    // Photos and films for the homepage are served from ivaaro.com
+    imgSrc: [
+      "'self'",
+      'data:',
+      'https://cdn.shopify.com',
+      'https://ivaaro.com',
+    ],
+    mediaSrc: ["'self'", 'https://cdn.shopify.com', 'https://ivaaro.com'],
   });
 
   const body = await renderToReadableStream(

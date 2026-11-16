@@ -7,6 +7,7 @@ import {
 } from '@shopify/hydrogen';
 import type {HeaderQuery, CartApiQueryFragment} from 'storefrontapi.generated';
 import {useAside} from '~/components/Aside';
+import {CATEGORIES} from '~/lib/categories';
 
 interface HeaderProps {
   header: HeaderQuery;
@@ -17,67 +18,64 @@ interface HeaderProps {
 
 type Viewport = 'desktop' | 'mobile';
 
-/**
- * Text for the thin plum strip above the header.
- * Leave it empty ('') to hide the strip.
- */
-const ANNOUNCEMENT = '';
-
-export function Header({
-  header,
-  isLoggedIn,
-  cart,
-  publicStoreDomain,
-}: HeaderProps) {
-  const {shop, menu} = header;
+export function Header({isLoggedIn, cart}: HeaderProps) {
   return (
-    <>
-      {ANNOUNCEMENT ? (
-        <div className="iv-announcement">{ANNOUNCEMENT}</div>
-      ) : null}
-      <header className="iv-header">
-        <div className="iv-container iv-header-bar">
-          <div className="iv-header-side">
-            <HeaderMenuMobileToggle />
-            <SearchToggle />
-          </div>
-          <NavLink
-            prefetch="intent"
-            to="/"
-            end
-            className="iv-logo"
-            aria-label={`${shop.name} home`}
-          >
-            <img
-              src="/images/ivaaro-logo-horizontal.png"
-              alt="IVAARO"
-              width={183}
-              height={30}
-            />
-          </NavLink>
-          <div className="iv-header-side iv-header-side--end">
-            <AccountLink isLoggedIn={isLoggedIn} />
-            <CartToggle cart={cart} />
-          </div>
+    <header className="iv-hd">
+      <div className="iv-hd-top">
+        <div className="iv-hd-side">
+          <HeaderMenuMobileToggle />
         </div>
-        <div className="iv-container">
-          <HeaderMenu
-            menu={menu}
-            viewport="desktop"
-            primaryDomainUrl={header.shop.primaryDomain.url}
-            publicStoreDomain={publicStoreDomain}
+        <NavLink
+          prefetch="intent"
+          to="/"
+          end
+          className="iv-hd-logo"
+          aria-label="IVAARO home"
+        >
+          <img
+            src="/images/ivaaro-logo-ink.png"
+            alt="IVAARO"
+            width={219}
+            height={36}
           />
+        </NavLink>
+        <div className="iv-hd-side iv-hd-side--end">
+          <span className="iv-hd-mobile-only">
+            <SearchToggle />
+          </span>
+          <AccountLink isLoggedIn={isLoggedIn} />
+          <CartToggle cart={cart} />
         </div>
-      </header>
-    </>
+      </div>
+      <nav className="iv-hd-nav" aria-label="Collections">
+        <ul>
+          {CATEGORIES.map((category) => (
+            <li key={category.handle}>
+              <NavLink
+                className="iv-hd-link"
+                prefetch="intent"
+                to={`/collections/${category.handle}`}
+              >
+                {category.title}
+              </NavLink>
+            </li>
+          ))}
+          <li className="iv-hd-divider" aria-hidden="true" />
+          <li>
+            <SearchToggle />
+          </li>
+        </ul>
+      </nav>
+    </header>
   );
 }
 
+/**
+ * The menu drawer on phones and tablets: the six collections in large
+ * serif type, then the smaller links.
+ */
 export function HeaderMenu({
-  menu,
-  primaryDomainUrl,
   viewport,
-  publicStoreDomain,
 }: {
   menu: HeaderProps['header']['menu'];
   primaryDomainUrl: HeaderProps['header']['shop']['primaryDomain']['url'];
@@ -88,30 +86,30 @@ export function HeaderMenu({
 
   return (
     <nav
-      className={`iv-nav iv-nav--${viewport}`}
-      aria-label={viewport === 'desktop' ? 'Main' : 'Mobile'}
+      className={`iv-drawer-nav iv-drawer-nav--${viewport}`}
+      aria-label="Main"
     >
-      {viewport === 'mobile' && (
-        <NavLink end onClick={close} prefetch="intent" to="/">
-          Home
+      {CATEGORIES.map((category) => (
+        <NavLink
+          key={category.handle}
+          className="iv-drawer-big"
+          onClick={close}
+          prefetch="intent"
+          to={`/collections/${category.handle}`}
+        >
+          {category.title}
         </NavLink>
-      )}
-      {(menu || FALLBACK_HEADER_MENU).items.map((item) => {
-        if (!item.url) return null;
-
-        // if the url is internal, we strip the domain
-        const url =
-          item.url.includes('myshopify.com') ||
-          item.url.includes(publicStoreDomain) ||
-          item.url.includes(primaryDomainUrl)
-            ? new URL(item.url).pathname
-            : item.url;
-        return (
-          <NavLink end key={item.id} onClick={close} prefetch="intent" to={url}>
-            {item.title}
-          </NavLink>
-        );
-      })}
+      ))}
+      <hr />
+      <NavLink className="iv-drawer-small" onClick={close} to="/our-story">
+        Our story
+      </NavLink>
+      <NavLink className="iv-drawer-small" onClick={close} to="/account">
+        Your account
+      </NavLink>
+      <NavLink className="iv-drawer-small" onClick={close} to="/pages/contact">
+        Contact us
+      </NavLink>
     </nav>
   );
 }
@@ -121,7 +119,7 @@ function HeaderMenuMobileToggle() {
   return (
     <button
       type="button"
-      className="iv-icon-btn iv-mobile-toggle"
+      className="iv-icon-btn iv-hd-burger"
       onClick={() => open('mobile')}
       aria-label="Open menu"
     >
@@ -131,7 +129,7 @@ function HeaderMenuMobileToggle() {
         viewBox="0 0 24 24"
         fill="none"
         stroke="currentColor"
-        strokeWidth="1.5"
+        strokeWidth="1.3"
         aria-hidden="true"
       >
         <path d="M3 7h18M3 12h18M3 17h18" />
@@ -155,7 +153,7 @@ function SearchToggle() {
         viewBox="0 0 24 24"
         fill="none"
         stroke="currentColor"
-        strokeWidth="1.5"
+        strokeWidth="1.3"
         aria-hidden="true"
       >
         <circle cx="11" cy="11" r="7" />
@@ -173,7 +171,7 @@ function AccountLink({isLoggedIn}: Pick<HeaderProps, 'isLoggedIn'>) {
       viewBox="0 0 24 24"
       fill="none"
       stroke="currentColor"
-      strokeWidth="1.5"
+      strokeWidth="1.3"
       aria-hidden="true"
     >
       <circle cx="12" cy="8" r="4" />
@@ -235,7 +233,7 @@ function CartBadge({count}: {count: number}) {
         viewBox="0 0 24 24"
         fill="none"
         stroke="currentColor"
-        strokeWidth="1.5"
+        strokeWidth="1.3"
         aria-hidden="true"
       >
         <path d="M6 8h12l-1 12H7L6 8z" />
@@ -265,49 +263,3 @@ function CartBanner() {
   const cart = useOptimisticCart(originalCart);
   return <CartBadge count={cart?.totalQuantity ?? 0} />;
 }
-
-/**
- * Used only until a "main-menu" navigation is set up in Shopify
- * (Online Store › Navigation). Once that menu exists, its links show instead.
- */
-const FALLBACK_HEADER_MENU = {
-  id: 'ivaaro-fallback-menu',
-  items: [
-    {
-      id: 'ivaaro-shop',
-      resourceId: null,
-      tags: [],
-      title: 'The pen',
-      type: 'HTTP',
-      url: '/collections/all',
-      items: [],
-    },
-    {
-      id: 'ivaaro-gifting',
-      resourceId: null,
-      tags: [],
-      title: 'Gifting',
-      type: 'HTTP',
-      url: '/#gifting',
-      items: [],
-    },
-    {
-      id: 'ivaaro-story',
-      resourceId: null,
-      tags: [],
-      title: 'Our story',
-      type: 'HTTP',
-      url: '/our-story',
-      items: [],
-    },
-    {
-      id: 'ivaaro-contact',
-      resourceId: null,
-      tags: [],
-      title: 'Contact',
-      type: 'PAGE',
-      url: '/pages/contact',
-      items: [],
-    },
-  ],
-};

@@ -1,5 +1,4 @@
-import {Suspense} from 'react';
-import {Await, NavLink} from 'react-router';
+import {NavLink} from 'react-router';
 import type {FooterQuery, HeaderQuery} from 'storefrontapi.generated';
 
 interface FooterProps {
@@ -8,156 +7,88 @@ interface FooterProps {
   publicStoreDomain: string;
 }
 
-export function Footer({
-  footer: footerPromise,
-  header,
-  publicStoreDomain,
-}: FooterProps) {
+/**
+ * Site footer. Only links to pages that exist are shown; add social links
+ * here once the profiles are live.
+ */
+export function Footer(_props: FooterProps) {
   const year = new Date().getFullYear();
   return (
-    <footer className="iv-footer">
-      <div className="iv-container">
-        <div className="iv-footer-top">
-          <div className="iv-footer-brand">
+    <footer className="iv-ft">
+      <div className="iv-wrap">
+        <div className="iv-ft-cols">
+          <div className="iv-ft-col iv-ft-brand">
             <img
-              src="/images/ivaaro-logo-stacked-gold.png"
+              src="/images/ivaaro-logo-ivory.png"
               alt="IVAARO"
-              width={152}
-              height={72}
+              width={146}
+              height={24}
+              loading="lazy"
             />
             <p>
-              IVAARO is a premium lifestyle accessory brand inspired by vara, a
-              Sanskrit word meaning a gift, a boon or a blessing. Beginning with
-              pens, IVAARO brings thoughtful presentation and personal meaning
-              to objects chosen for someone you love, or for yourself.
+              Premium writing instruments and lifestyle accessories, chosen with
+              care. For the days ahead.
             </p>
           </div>
-          <div className="iv-footer-cols">
-            <nav className="iv-footer-col" aria-label="Shop">
-              <span className="iv-footer-col-title">Shop</span>
-              <NavLink prefetch="intent" to="/collections/all">
-                The pen
-              </NavLink>
-              <NavLink prefetch="intent" to="/#gifting">
-                Gifting
-              </NavLink>
-              <NavLink prefetch="intent" to="/search">
-                Search
-              </NavLink>
-            </nav>
-            <nav className="iv-footer-col" aria-label="Help">
-              <span className="iv-footer-col-title">Help</span>
-              <NavLink prefetch="intent" to="/account">
-                Your account and orders
-              </NavLink>
-              <NavLink prefetch="intent" to="/pages/contact">
-                Contact us
-              </NavLink>
-              <NavLink prefetch="intent" to="/our-story">
-                Our story
-              </NavLink>
-            </nav>
-            <Suspense fallback={<PolicyLinks />}>
-              <Await resolve={footerPromise} errorElement={<PolicyLinks />}>
-                {(footer) => (
-                  <PolicyLinks
-                    menu={footer?.menu}
-                    primaryDomainUrl={header.shop.primaryDomain?.url}
-                    publicStoreDomain={publicStoreDomain}
-                  />
-                )}
-              </Await>
-            </Suspense>
-          </div>
+          <nav className="iv-ft-col" aria-label="Client care">
+            <h3>Client care</h3>
+            <NavLink to="/pages/contact" prefetch="intent">
+              Contact us
+            </NavLink>
+            <NavLink to="/account" prefetch="intent">
+              Your account and orders
+            </NavLink>
+            <NavLink to="/policies/shipping-policy" prefetch="intent">
+              Shipping
+            </NavLink>
+            <NavLink to="/policies/refund-policy" prefetch="intent">
+              Returns and refunds
+            </NavLink>
+          </nav>
+          <nav className="iv-ft-col" aria-label="Our company">
+            <h3>Our company</h3>
+            <NavLink to="/our-story" prefetch="intent">
+              Our story
+            </NavLink>
+            <NavLink to="/collections" prefetch="intent">
+              The collections
+            </NavLink>
+            <NavLink to="/search" prefetch="intent">
+              Search
+            </NavLink>
+          </nav>
+          <nav className="iv-ft-col" aria-label="Legal area">
+            <h3>Legal area</h3>
+            <NavLink to="/policies/terms-of-service" prefetch="intent">
+              Terms of use
+            </NavLink>
+            <NavLink to="/policies/privacy-policy" prefetch="intent">
+              Privacy policy
+            </NavLink>
+          </nav>
         </div>
-        <div className="iv-footer-bottom">
-          <span>© {year} IVAARO. All rights reserved.</span>
-          <span className="iv-footer-tagline">IVAARO. For the days ahead.</span>
+        <div className="iv-ft-bottom">
+          <span>
+            © {year} IVAARO · Premium Writing Instruments &amp; Lifestyle
+            Accessories
+          </span>
+          <span className="iv-ft-country">
+            <svg
+              width="14"
+              height="14"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.4"
+              aria-hidden="true"
+            >
+              <circle cx="12" cy="12" r="9" />
+              <path d="M3 12h18M12 3c2.5 2.6 3.8 5.6 3.8 9s-1.3 6.4-3.8 9c-2.5-2.6-3.8-5.6-3.8-9S9.5 5.6 12 3z" />
+            </svg>
+            India · ₹ INR
+          </span>
         </div>
       </div>
     </footer>
   );
 }
-
-/**
- * Shows the "footer" menu from Shopify (Online Store › Navigation) when it
- * exists, otherwise links to the standard policy pages.
- */
-function PolicyLinks({
-  menu,
-  primaryDomainUrl,
-  publicStoreDomain,
-}: {
-  menu?: FooterQuery['menu'];
-  primaryDomainUrl?: string;
-  publicStoreDomain?: string;
-}) {
-  const items = (menu || FALLBACK_FOOTER_MENU).items;
-  return (
-    <nav className="iv-footer-col" aria-label="Policies">
-      <span className="iv-footer-col-title">Policies</span>
-      {items.map((item) => {
-        if (!item.url) return null;
-        // if the url is internal, we strip the domain
-        const url =
-          item.url.includes('myshopify.com') ||
-          (publicStoreDomain && item.url.includes(publicStoreDomain)) ||
-          (primaryDomainUrl && item.url.includes(primaryDomainUrl))
-            ? new URL(item.url).pathname
-            : item.url;
-        const isExternal = !url.startsWith('/');
-        return isExternal ? (
-          <a href={url} key={item.id} rel="noopener noreferrer" target="_blank">
-            {item.title}
-          </a>
-        ) : (
-          <NavLink end key={item.id} prefetch="intent" to={url}>
-            {item.title}
-          </NavLink>
-        );
-      })}
-    </nav>
-  );
-}
-
-const FALLBACK_FOOTER_MENU = {
-  id: 'ivaaro-fallback-footer',
-  items: [
-    {
-      id: 'ivaaro-privacy',
-      resourceId: null,
-      tags: [],
-      title: 'Privacy policy',
-      type: 'SHOP_POLICY',
-      url: '/policies/privacy-policy',
-      items: [],
-    },
-    {
-      id: 'ivaaro-refund',
-      resourceId: null,
-      tags: [],
-      title: 'Refund policy',
-      type: 'SHOP_POLICY',
-      url: '/policies/refund-policy',
-      items: [],
-    },
-    {
-      id: 'ivaaro-shipping',
-      resourceId: null,
-      tags: [],
-      title: 'Shipping policy',
-      type: 'SHOP_POLICY',
-      url: '/policies/shipping-policy',
-      items: [],
-    },
-    {
-      id: 'ivaaro-terms',
-      resourceId: null,
-      tags: [],
-      title: 'Terms of service',
-      type: 'SHOP_POLICY',
-      url: '/policies/terms-of-service',
-      items: [],
-    },
-  ],
-};

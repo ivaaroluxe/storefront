@@ -1,19 +1,20 @@
 import {Await, useLoaderData, Link} from 'react-router';
 import type {Route} from './+types/_index';
-import {Suspense} from 'react';
+import {Suspense, useCallback, useEffect, useRef, useState} from 'react';
 import {Image, Money} from '@shopify/hydrogen';
 import type {
   RecommendedProductFragment,
   RecommendedProductsQuery,
 } from 'storefrontapi.generated';
+import {CATEGORIES, assetImage, assetVideo} from '~/lib/categories';
 
 export const meta: Route.MetaFunction = () => {
   return [
-    {title: 'IVAARO | For the days ahead.'},
+    {title: 'IVAARO — Premium Writing Instruments & Lifestyle Accessories'},
     {
       name: 'description',
       content:
-        'IVAARO is a premium lifestyle accessory brand inspired by vara, a Sanskrit word meaning a gift, a boon or a blessing. Beginning with pens.',
+        'IVAARO — premium writing instruments and lifestyle accessories. A contemporary lifestyle brand for professionals who appreciate thoughtful design, everyday functionality and refined details.',
     },
   ];
 };
@@ -42,101 +43,362 @@ export default function Homepage() {
   const data = useLoaderData<typeof loader>();
   return (
     <div className="iv-home">
-      <Hero />
-      <Collection products={data.featuredProducts} />
-      <ThePen />
-      <Story />
-      <Gifting />
-      <Meaning />
-      <Promises />
+      <VideoBanner
+        tall
+        video="hero-pen.mp4"
+        kicker="The Signature Collection"
+        title="The art of the written word"
+        titleId="iv-hero-title"
+        heading="h1"
+        cta={{label: 'Discover', to: '#new'}}
+        priority
+      />
+
+      <section className="iv-banner" aria-labelledby="iv-sig-title">
+        <img
+          src={assetImage('signature-pen-nib.jpg')}
+          alt="Gold fountain pen with an engraved nib"
+          loading="lazy"
+        />
+        <div className="iv-banner-content">
+          <span className="iv-banner-kicker">Fine Writing Instruments</span>
+          <h2 id="iv-sig-title">The Ivaaro Signature</h2>
+          <Link
+            to="/collections/fine-writing-instruments"
+            prefetch="intent"
+            className="iv-cta"
+          >
+            Discover the collection
+          </Link>
+        </div>
+      </section>
+
+      <LatestCreations products={data.featuredProducts} />
+
+      <VideoBanner
+        video="atelier-leather.mp4"
+        kicker="Leather Goods"
+        title="The Atelier Collection"
+        titleId="iv-atelier-title"
+        text="Full-grain leather, cut and stitched by hand — made to soften and deepen with every year of use."
+        cta={{label: 'Discover', to: '/collections/leather-goods'}}
+      />
+
+      <Collections />
+      <Services />
     </div>
   );
 }
 
-function Hero() {
+/**
+ * Full-width film with a headline at the bottom. The film plays only while
+ * on screen, can be paused, and stays still for visitors who prefer reduced
+ * motion.
+ */
+function VideoBanner({
+  video,
+  kicker,
+  title,
+  titleId,
+  text,
+  cta,
+  tall,
+  heading = 'h2',
+  priority,
+}: {
+  video: string;
+  kicker: string;
+  title: string;
+  titleId: string;
+  text?: string;
+  cta: {label: string; to: string};
+  tall?: boolean;
+  heading?: 'h1' | 'h2';
+  priority?: boolean;
+}) {
+  const sectionRef = useRef<HTMLElement>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const userPaused = useRef(false);
+  const [playing, setPlaying] = useState(false);
+
+  useEffect(() => {
+    const v = videoRef.current;
+    const section = sectionRef.current;
+    if (!v || !section) return;
+    v.muted = true;
+    const reduce = window.matchMedia(
+      '(prefers-reduced-motion: reduce)',
+    ).matches;
+    if (reduce) {
+      userPaused.current = true;
+      v.pause();
+      return;
+    }
+    const onPlay = () => setPlaying(true);
+    const onPause = () => setPlaying(false);
+    v.addEventListener('play', onPlay);
+    v.addEventListener('pause', onPause);
+    const observer = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          if (entry.isIntersecting && !userPaused.current) {
+            v.play().catch(() => {});
+          } else if (!entry.isIntersecting) {
+            v.pause();
+          }
+        }
+      },
+      {threshold: 0.25},
+    );
+    observer.observe(section);
+    return () => {
+      observer.disconnect();
+      v.removeEventListener('play', onPlay);
+      v.removeEventListener('pause', onPause);
+    };
+  }, []);
+
+  const toggle = () => {
+    const v = videoRef.current;
+    if (!v) return;
+    if (v.paused) {
+      userPaused.current = false;
+      v.play().catch(() => {});
+    } else {
+      userPaused.current = true;
+      v.pause();
+    }
+  };
+
+  const Heading = heading;
+
   return (
-    <section className="iv-hero" aria-labelledby="iv-hero-title">
-      <div className="iv-hero-copy">
-        <span className="iv-hero-kicker">Premium lifestyle accessories</span>
-        <h1 id="iv-hero-title">For the days ahead.</h1>
-        <p className="iv-hero-lede">
-          A premium lifestyle accessory brand. Beginning with pens. Built to
-          become personal.
-        </p>
-        <div className="iv-hero-actions">
-          <Link
-            to="/collections/all"
-            prefetch="intent"
-            className="iv-btn iv-btn--gold"
-          >
-            Discover the pen
+    <section
+      ref={sectionRef}
+      className={`iv-banner${tall ? ' iv-banner--tall' : ''}`}
+      aria-labelledby={titleId}
+    >
+      <video
+        ref={videoRef}
+        muted
+        loop
+        playsInline
+        preload={priority ? 'auto' : 'metadata'}
+        aria-hidden="true"
+      >
+        <source src={assetVideo(video)} type="video/mp4" />
+      </video>
+      <div className="iv-banner-content">
+        <span className="iv-banner-kicker">{kicker}</span>
+        <Heading id={titleId}>{title}</Heading>
+        {text ? <p>{text}</p> : null}
+        {cta.to.startsWith('#') ? (
+          <a href={cta.to} className="iv-cta">
+            {cta.label}
+          </a>
+        ) : (
+          <Link to={cta.to} prefetch="intent" className="iv-cta">
+            {cta.label}
           </Link>
-          <Link
-            to="/our-story"
-            prefetch="intent"
-            className="iv-btn iv-btn--outline-light"
+        )}
+      </div>
+      <button
+        type="button"
+        className="iv-vtoggle"
+        onClick={toggle}
+        aria-label={playing ? 'Pause video' : 'Play video'}
+      >
+        {playing ? (
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 16 16"
+            fill="currentColor"
+            aria-hidden="true"
           >
-            Our story
-          </Link>
-        </div>
-      </div>
-      <div className="iv-hero-media">
-        <img
-          src="/images/presentation-box.jpg"
-          alt="An IVAARO black and gold pen in its aubergine presentation box, with an ivory satin sleeve and a folded leaf"
-          width={1271}
-          height={981}
-          fetchPriority="high"
-        />
-      </div>
+            <rect x="3" y="2" width="3.5" height="12" />
+            <rect x="9.5" y="2" width="3.5" height="12" />
+          </svg>
+        ) : (
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 16 16"
+            fill="currentColor"
+            aria-hidden="true"
+          >
+            <path d="M4 2l10 6-10 6z" />
+          </svg>
+        )}
+      </button>
     </section>
   );
 }
 
-function Collection({
+function LatestCreations({
   products,
 }: {
   products: Promise<RecommendedProductsQuery | null>;
 }) {
   return (
-    <section className="iv-collection" aria-labelledby="iv-collection-title">
-      <div className="iv-container">
-        <div className="iv-section-head">
-          <div>
-            <p className="iv-eyebrow">Beginning with pens</p>
-            <h2 id="iv-collection-title" className="iv-heading">
-              The first collection
-            </h2>
-          </div>
-          <Link
-            to="/collections/all"
-            prefetch="intent"
-            className="iv-text-link"
+    <section className="iv-section" id="new" aria-labelledby="iv-new-title">
+      <div className="iv-wrap">
+        <Suspense fallback={<CarouselShell title={<NewTitle />} empty />}>
+          <Await
+            resolve={products}
+            errorElement={<CarouselShell title={<NewTitle />} empty />}
           >
-            View all
-          </Link>
-        </div>
-        <Suspense fallback={<ProductGridPlaceholder />}>
-          <Await resolve={products} errorElement={<ProductGridPlaceholder />}>
             {(response) => {
               const nodes = response?.products.nodes ?? [];
-              if (!nodes.length) return <ProductGridPlaceholder />;
+              if (!nodes.length) {
+                return <CarouselShell title={<NewTitle />} empty />;
+              }
               return (
-                <div className="iv-product-grid">
+                <Carousel title={<NewTitle />}>
                   {nodes.map((product, index) => (
                     <ProductCard
                       key={product.id}
                       product={product}
-                      loading={index < 2 ? 'eager' : 'lazy'}
+                      loading={index < 4 ? 'eager' : 'lazy'}
                     />
                   ))}
-                </div>
+                </Carousel>
               );
             }}
           </Await>
         </Suspense>
       </div>
     </section>
+  );
+}
+
+function NewTitle() {
+  return (
+    <div>
+      <span className="iv-kicker-dark">New</span>
+      <h2 id="iv-new-title">Latest creations</h2>
+    </div>
+  );
+}
+
+/** Shown before products are added in Shopify */
+function CarouselShell({title}: {title: React.ReactNode; empty: true}) {
+  return (
+    <>
+      <div className="iv-sec-head">{title}</div>
+      <div className="iv-new-empty">
+        <p>New creations are on their way.</p>
+        <Link to="/our-story" prefetch="intent" className="iv-cta">
+          Read our story
+        </Link>
+      </div>
+    </>
+  );
+}
+
+function Carousel({
+  title,
+  children,
+}: {
+  title: React.ReactNode;
+  children: React.ReactNode;
+}) {
+  const trackRef = useRef<HTMLDivElement>(null);
+  const [state, setState] = useState({
+    atStart: true,
+    atEnd: false,
+    width: 25,
+    left: 0,
+  });
+
+  const update = useCallback(() => {
+    const track = trackRef.current;
+    if (!track) return;
+    const max = track.scrollWidth - track.clientWidth;
+    const width = Math.min(100, (track.clientWidth / track.scrollWidth) * 100);
+    setState({
+      atStart: track.scrollLeft <= 2,
+      atEnd: track.scrollLeft >= max - 2,
+      width,
+      left: max > 0 ? (track.scrollLeft / max) * (100 - width) : 0,
+    });
+  }, []);
+
+  useEffect(() => {
+    update();
+    window.addEventListener('resize', update);
+    return () => window.removeEventListener('resize', update);
+  }, [update]);
+
+  const step = () => {
+    const card = trackRef.current?.querySelector('.iv-card');
+    return card ? card.getBoundingClientRect().width + 24 : 300;
+  };
+  const scroll = (direction: 1 | -1) =>
+    trackRef.current?.scrollBy({left: direction * step()});
+
+  return (
+    <>
+      <div className="iv-sec-head">
+        {title}
+        <div className="iv-arrows">
+          <button
+            type="button"
+            className="iv-arrow"
+            aria-label="Previous products"
+            disabled={state.atStart}
+            onClick={() => scroll(-1)}
+          >
+            <svg
+              width="18"
+              height="18"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.4"
+              aria-hidden="true"
+            >
+              <path d="M15 5l-7 7 7 7" />
+            </svg>
+          </button>
+          <button
+            type="button"
+            className="iv-arrow"
+            aria-label="Next products"
+            disabled={state.atEnd}
+            onClick={() => scroll(1)}
+          >
+            <svg
+              width="18"
+              height="18"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.4"
+              aria-hidden="true"
+            >
+              <path d="M9 5l7 7-7 7" />
+            </svg>
+          </button>
+        </div>
+      </div>
+      {/* The strip is focusable so keyboard users can scroll it with the
+          arrow keys, as recommended for scrollable regions. */}
+      <div
+        ref={trackRef}
+        className="iv-track"
+        // eslint-disable-next-line jsx-a11y/no-noninteractive-tabindex
+        tabIndex={0}
+        role="region"
+        aria-label="New products, scroll horizontally"
+        onScroll={update}
+      >
+        {children}
+      </div>
+      <div className="iv-progress" aria-hidden="true">
+        <span style={{width: `${state.width}%`, left: `${state.left}%`}} />
+      </div>
+    </>
   );
 }
 
@@ -148,290 +410,176 @@ function ProductCard({
   loading: 'eager' | 'lazy';
 }) {
   const image = product.featuredImage;
+  const url = `/products/${product.handle}`;
+  const spec =
+    product.productType ||
+    (product.description ? truncate(product.description, 70) : '');
   return (
-    <Link
-      className="iv-product-card"
-      to={`/products/${product.handle}`}
-      prefetch="intent"
-    >
-      <div className="iv-product-media">
+    <article className="iv-card">
+      <Link
+        to={url}
+        prefetch="intent"
+        className="iv-media"
+        tabIndex={-1}
+        aria-hidden="true"
+      >
         {image ? (
           <Image
             data={image}
-            alt={image.altText || product.title}
+            alt=""
             aspectRatio="4/5"
-            sizes="(min-width: 1024px) 25vw, (min-width: 640px) 50vw, 100vw"
+            sizes="(min-width: 1100px) 25vw, (min-width: 860px) 33vw, (min-width: 600px) 50vw, 78vw"
             loading={loading}
           />
         ) : (
-          <PenIcon />
+          <span className="iv-media-empty">
+            <img
+              src="/images/ivaaro-emblem.png"
+              alt=""
+              width={48}
+              height={46}
+            />
+          </span>
         )}
-      </div>
-      <div className="iv-product-info">
-        <span className="iv-product-title">{product.title}</span>
-        <span className="iv-product-price">
-          <Money data={product.priceRange.minVariantPrice} />
-        </span>
-      </div>
-    </Link>
+      </Link>
+      <Link to={url} prefetch="intent" className="iv-card-name">
+        {product.title}
+      </Link>
+      {spec ? <span className="iv-card-spec">{spec}</span> : null}
+      <span className="iv-card-price">
+        <Money data={product.priceRange.minVariantPrice} />
+      </span>
+      <Link
+        to={url}
+        prefetch="intent"
+        className="iv-cta"
+        aria-label={`Discover ${product.title}`}
+      >
+        Discover
+      </Link>
+    </article>
   );
 }
 
-/** Shown until products are added in Shopify */
-function ProductGridPlaceholder() {
-  return (
-    <div className="iv-product-grid">
-      {[0, 1, 2, 3].map((i) => (
-        <div className="iv-product-card" key={i} aria-hidden="true">
-          <div className="iv-product-media iv-product-placeholder">
-            <PenIcon />
-            Coming soon
-          </div>
-          <div className="iv-product-info">
-            <span className="iv-product-title">&nbsp;</span>
-          </div>
-        </div>
-      ))}
-    </div>
-  );
+function truncate(text: string, max: number) {
+  const clean = text.replace(/\s+/g, ' ').trim();
+  return clean.length > max ? `${clean.slice(0, max - 1).trimEnd()}…` : clean;
 }
 
-function PenIcon() {
-  return (
-    <svg
-      width="72"
-      height="72"
-      viewBox="0 0 72 72"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.2"
-      aria-hidden="true"
-    >
-      <path d="M14 58L50 22l6 6-36 36-8 2 2-8z" />
-      <path d="M44 28l6 6" />
-    </svg>
-  );
-}
-
-function ThePen() {
-  return (
-    <section className="iv-pen" aria-labelledby="iv-pen-title">
-      <div className="iv-container">
-        <div className="iv-pen-head">
-          <p className="iv-eyebrow">The pen</p>
-          <h2 id="iv-pen-title" className="iv-heading">
-            A quieter signature
-          </h2>
-          <p>
-            Glossy black and gold, marked only by a small emblem on the crown.
-          </p>
-        </div>
-        <img
-          className="iv-pen-strip"
-          src="/images/pen-full.jpg"
-          alt="The IVAARO pen: a glossy black barrel with gold clip, centre ring and cone"
-          width={1501}
-          height={188}
-          loading="lazy"
-        />
-        <div className="iv-pen-details">
-          <div className="iv-pen-detail">
-            <h3>One deliberate mark</h3>
-            <p>
-              A small gold emblem on the crown. The barrel stays clean, with
-              no name across it.
-            </p>
-          </div>
-          <div className="iv-pen-detail">
-            <h3>Black and gold</h3>
-            <p>
-              A glossy black barrel with a gold clip, centre ring and cone.
-            </p>
-          </div>
-          <div className="iv-pen-detail">
-            <h3>Care for what you carry</h3>
-            <p>
-              Keep it in its satin sleeve and clean it gently with a soft
-              cloth.
-            </p>
-          </div>
-        </div>
-      </div>
-    </section>
-  );
-}
-
-function Story() {
-  return (
-    <section className="iv-story" aria-labelledby="iv-story-title">
-      <div className="iv-container iv-story-inner">
-        <img
-          className="iv-story-emblem"
-          src="/images/ivaaro-emblem.png"
-          alt=""
-          width={56}
-          height={54}
-          loading="lazy"
-        />
-        <p className="iv-eyebrow">Our story</p>
-        <h2 id="iv-story-title" className="iv-heading">
-          Some things stay with us.
-        </h2>
-        <p>
-          When we give something to someone we love, there is often more we
-          want to say.
-        </p>
-        <div className="iv-quotes">
-          <span>“I’m proud of you.”</span>
-          <span>“I believe in you.”</span>
-          <span>“Whatever comes next, I’m with you.”</span>
-        </div>
-        <p>
-          IVAARO carries that feeling into something they can hold, use and
-          keep: a quiet reminder of someone who cares, and everything they
-          wished for them.
-        </p>
-        <Link to="/our-story" prefetch="intent" className="iv-text-link">
-          Read our story
-        </Link>
-      </div>
-    </section>
-  );
-}
-
-function Gifting() {
+function Collections() {
   return (
     <section
-      id="gifting"
-      className="iv-gifting"
-      aria-labelledby="iv-gifting-title"
+      className="iv-cats"
+      id="collections"
+      aria-labelledby="iv-cats-title"
     >
-      <div className="iv-container iv-split">
-        <div className="iv-split-media iv-leaf-media">
-          <img
-            src="/images/message-leaf.jpg"
-            alt="The IVAARO folded leaf: the brand story on one side, and a page headed A wish for you, with space to write"
-            width={632}
-            height={328}
-            loading="lazy"
-          />
-        </div>
-        <div className="iv-split-copy">
-          <p className="iv-eyebrow">For someone you love, or for yourself</p>
-          <h2 id="iv-gifting-title" className="iv-heading">
-            What I wish for you…
-          </h2>
-          <p>
-            Inside the aubergine box, a folded leaf comes before the pen: our
-            story on one side, and room for your own words on the other.
-          </p>
-          <p className="iv-leaf-note">
-            A few words today. Something to return to.
-          </p>
-          <div className="iv-rule" />
-          <Link
-            to="/collections/all"
-            prefetch="intent"
-            className="iv-btn iv-btn--plum"
-            style={{alignSelf: 'flex-start'}}
-          >
-            Choose a gift
-          </Link>
-        </div>
+      <div className="iv-wrap iv-cats-head">
+        <span className="iv-kicker-dark">The Collections</span>
+        <h2 id="iv-cats-title">
+          Premium Writing Instruments &amp; Lifestyle Accessories
+        </h2>
+        <p className="iv-cats-intro">
+          <em>
+            IVAARO is a lifestyle brand for professionals, with premium writing
+            instruments at its core.
+          </em>
+        </p>
+        <p className="iv-cats-intro">
+          Our collections bring together modern design, functionality and
+          refined craftsmanship, offering thoughtfully designed products that
+          complement personal and professional lifestyles.
+        </p>
+      </div>
+      <div className="iv-tiles">
+        {CATEGORIES.map((category) => {
+          const url = `/collections/${category.handle}`;
+          return (
+            <article
+              className="iv-tile"
+              key={category.handle}
+              id={`cat-${category.handle}`}
+            >
+              <Link
+                to={url}
+                prefetch="intent"
+                className="iv-media"
+                aria-label={category.title}
+              >
+                <img
+                  src={assetImage(category.image)}
+                  alt={category.alt}
+                  loading="lazy"
+                />
+              </Link>
+              <div className="iv-tile-copy">
+                <h3>{category.title}</h3>
+                <p>{category.description}</p>
+                <Link to={url} prefetch="intent" className="iv-cta">
+                  Discover the collection
+                </Link>
+              </div>
+            </article>
+          );
+        })}
       </div>
     </section>
   );
 }
 
-function Meaning() {
+function Services() {
+  const services = [
+    {
+      image: 'service-leather-care.jpg',
+      alt: 'Leather wallet with thread and scissors',
+      title: 'Our leather goods services',
+      text: 'Hot-stamped initials, conditioning and repairs to keep your leather at its best.',
+      cta: 'Find out more',
+    },
+    {
+      image: 'service-workshop.jpg',
+      alt: 'Workshop with a sewing machine and hanging leather goods',
+      title: 'Our writing instrument services',
+      text: 'Engraving, nib adjustment and full servicing by our workshop.',
+      cta: 'Find out more',
+    },
+    {
+      image: 'service-appointment.jpg',
+      alt: 'Leather wallet, belt and shoes laid out together',
+      title: 'Book an appointment',
+      text: 'Meet an advisor in boutique or by video call to choose, try and personalise.',
+      cta: 'Make an appointment',
+    },
+  ];
   return (
-    <section className="iv-meaning" aria-labelledby="iv-meaning-title">
-      <div className="iv-container iv-split">
-        <div className="iv-meaning-mark">
-          <img
-            src="/images/ivaaro-emblem-gold.png"
-            alt="The IVAARO emblem: a circle opening upward, crossed by two lines"
-            width={220}
-            height={212}
-            loading="lazy"
-          />
+    <section
+      className="iv-section iv-services"
+      id="services"
+      aria-labelledby="iv-svc-title"
+    >
+      <div className="iv-wrap">
+        <div className="iv-sec-head">
+          <div>
+            <span className="iv-kicker-dark">Services</span>
+            <h2 id="iv-svc-title">At your service</h2>
+          </div>
         </div>
-        <div className="iv-split-copy">
-          <p className="iv-eyebrow">The meaning behind IVAARO</p>
-          <h2 id="iv-meaning-title" className="iv-heading">
-            A gift, a boon, a blessing
-          </h2>
-          <p>
-            Our story takes inspiration from vara, a Sanskrit word whose
-            meanings include a gift, a boon or a blessing. We read that idea as
-            something chosen with care for another person, or for oneself.
-          </p>
-          <p>
-            The emblem opens upward, leaving space for what comes next. Its
-            intersecting lines give it a steady centre.
-          </p>
-          <p className="iv-fine-print">
-            Vara is the inspiration for our story, not a literal translation of
-            the name.
-          </p>
-        </div>
-      </div>
-    </section>
-  );
-}
-
-function Promises() {
-  return (
-    <section className="iv-promises" aria-label="Why IVAARO">
-      <div className="iv-container iv-promise-grid">
-        <div className="iv-promise">
-          <svg
-            width="32"
-            height="32"
-            viewBox="0 0 32 32"
-            fill="none"
-            stroke="#352332"
-            strokeWidth="1.3"
-            aria-hidden="true"
-          >
-            <rect x="4" y="11" width="24" height="17" />
-            <path d="M2 7h28v4H2z" />
-            <path d="M16 7v21" />
-          </svg>
-          <h3>The presentation box</h3>
-          <p>Aubergine outside, ivory inside, with one centred gold mark.</p>
-        </div>
-        <div className="iv-promise">
-          <svg
-            width="32"
-            height="32"
-            viewBox="0 0 32 32"
-            fill="none"
-            stroke="#352332"
-            strokeWidth="1.3"
-            aria-hidden="true"
-          >
-            <path d="M6 4h14l6 6v18H6z" />
-            <path d="M10 15h12M10 20h12M10 25h7" />
-          </svg>
-          <h3>Room for your words</h3>
-          <p>A folded leaf with space for a personal message.</p>
-        </div>
-        <div className="iv-promise">
-          <svg
-            width="32"
-            height="32"
-            viewBox="0 0 32 32"
-            fill="none"
-            stroke="#352332"
-            strokeWidth="1.3"
-            aria-hidden="true"
-          >
-            <rect x="7" y="14" width="18" height="14" />
-            <path d="M11 14V10a5 5 0 0 1 10 0v4" />
-          </svg>
-          <h3>Secure checkout</h3>
-          <p>Pay safely with UPI, cards or netbanking.</p>
+        <div className="iv-svc-grid">
+          {services.map((service) => (
+            <article className="iv-service" key={service.title}>
+              <div className="iv-media">
+                <img
+                  src={assetImage(service.image)}
+                  alt={service.alt}
+                  loading="lazy"
+                />
+              </div>
+              <h3>{service.title}</h3>
+              <p>{service.text}</p>
+              <Link to="/pages/contact" prefetch="intent" className="iv-cta">
+                {service.cta}
+              </Link>
+            </article>
+          ))}
         </div>
       </div>
     </section>
@@ -443,6 +591,8 @@ const FEATURED_PRODUCTS_QUERY = `#graphql
     id
     title
     handle
+    productType
+    description
     priceRange {
       minVariantPrice {
         amount
@@ -459,7 +609,7 @@ const FEATURED_PRODUCTS_QUERY = `#graphql
   }
   query RecommendedProducts ($country: CountryCode, $language: LanguageCode)
     @inContext(country: $country, language: $language) {
-    products(first: 4, sortKey: UPDATED_AT, reverse: true) {
+    products(first: 12, sortKey: CREATED_AT, reverse: true) {
       nodes {
         ...RecommendedProduct
       }
