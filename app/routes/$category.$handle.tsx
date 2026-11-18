@@ -500,7 +500,7 @@ function Gallery({
               width={800}
               height={800}
               loading={i === 0 ? 'eager' : 'lazy'}
-              fetchPriority={i === 0 ? 'high' : undefined}
+              {...(i === 0 ? {fetchpriority: 'high'} : {})}
             />
           </figure>
         ))}

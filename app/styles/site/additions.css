@@ -44,3 +44,30 @@
 .site-html a:not(.cta):not(.btn-solid):not(.btn-outline) {
   color: inherit;
 }
+
+/* Product page: Add to Bag sits inside Shopify's cart form */
+.buy-row > form {
+  flex: 1;
+  display: flex;
+  margin: 0;
+}
+
+.buy-row > form .btn-main {
+  flex: 1;
+}
+
+.btn-main:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.price .was {
+  margin-left: 12px;
+  font-size: 15px;
+  color: var(--body);
+}
+
+/* Collection cards: sold-out note after the price */
+.pprice .sold {
+  color: var(--body);
+}
