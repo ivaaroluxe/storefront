@@ -1,5 +1,5 @@
-import {Suspense} from 'react';
-import {Await, NavLink, useAsyncValue} from 'react-router';
+import {Suspense, useCallback, useEffect, useRef, useState} from 'react';
+import {Await, Link, useAsyncValue, useLocation} from 'react-router';
 import {
   type CartViewPayload,
   useAnalytics,
@@ -7,7 +7,7 @@ import {
 } from '@shopify/hydrogen';
 import type {HeaderQuery, CartApiQueryFragment} from 'storefrontapi.generated';
 import {useAside} from '~/components/Aside';
-import {CATEGORIES} from '~/lib/categories';
+import {NAV} from '~/lib/catalog';
 
 interface HeaderProps {
   header: HeaderQuery;
@@ -16,150 +16,207 @@ interface HeaderProps {
   publicStoreDomain: string;
 }
 
-type Viewport = 'desktop' | 'mobile';
-
-export function Header({isLoggedIn, cart}: HeaderProps) {
-  return (
-    <header className="iv-hd">
-      <div className="iv-hd-top">
-        <div className="iv-hd-side">
-          <HeaderMenuMobileToggle />
-        </div>
-        <NavLink
-          prefetch="intent"
-          to="/"
-          end
-          className="iv-hd-logo"
-          aria-label="IVAARO home"
-        >
-          <img
-            src="/images/ivaaro-logo-ink.png"
-            alt="IVAARO"
-            width={219}
-            height={36}
-          />
-        </NavLink>
-        <div className="iv-hd-side iv-hd-side--end">
-          <span className="iv-hd-mobile-only">
-            <SearchToggle />
-          </span>
-          <AccountLink isLoggedIn={isLoggedIn} />
-          <CartToggle cart={cart} />
-        </div>
-      </div>
-      <nav className="iv-hd-nav" aria-label="Collections">
-        <ul>
-          {CATEGORIES.map((category) => (
-            <li key={category.handle}>
-              <NavLink
-                className="iv-hd-link"
-                prefetch="intent"
-                to={`/collections/${category.handle}`}
-              >
-                {category.title}
-              </NavLink>
-            </li>
-          ))}
-          <li className="iv-hd-divider" aria-hidden="true" />
-          <li>
-            <SearchToggle />
-          </li>
-        </ul>
-      </nav>
-    </header>
-  );
-}
-
 /**
- * The menu drawer on phones and tablets: the six collections in large
- * serif type, then the smaller links.
+ * Site header and slide-out menu, as on the IVAARO static site:
+ * logo, the six collections and search, with account and bag added for
+ * the Shopify store.
  */
-export function HeaderMenu({
-  viewport,
-}: {
-  menu: HeaderProps['header']['menu'];
-  primaryDomainUrl: HeaderProps['header']['shop']['primaryDomain']['url'];
-  viewport: Viewport;
-  publicStoreDomain: HeaderProps['publicStoreDomain'];
-}) {
-  const {close} = useAside();
+export function Header({isLoggedIn, cart}: HeaderProps) {
+  const {pathname} = useLocation();
+  const {open} = useAside();
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
+  const openBtn = useRef<HTMLButtonElement>(null);
+  const closeBtn = useRef<HTMLButtonElement>(null);
+  const drawer = useRef<HTMLElement>(null);
+
+  const setMenu = useCallback((next: boolean) => {
+    setMenuOpen(next);
+    if (next) closeBtn.current?.focus({preventScroll: true});
+    else openBtn.current?.focus({preventScroll: true});
+  }, []);
+
+  useEffect(() => {
+    document.body.classList.toggle('menu-open', menuOpen);
+    // Keep the closed menu out of the tab order
+    if (drawer.current) drawer.current.inert = !menuOpen;
+    return () => document.body.classList.remove('menu-open');
+  }, [menuOpen]);
+
+  // Escape closes the menu
+  useEffect(() => {
+    if (!menuOpen) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setMenu(false);
+    };
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+  }, [menuOpen, setMenu]);
+
+  // Close the menu after navigating
+  useEffect(() => {
+    setMenuOpen(false);
+  }, [pathname]);
+
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 10);
+    onScroll();
+    window.addEventListener('scroll', onScroll, {passive: true});
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
+
+  const current = (handle: string) =>
+    pathname === `/${handle}` || pathname.startsWith(`/${handle}/`);
 
   return (
-    <nav
-      className={`iv-drawer-nav iv-drawer-nav--${viewport}`}
-      aria-label="Main"
-    >
-      {CATEGORIES.map((category) => (
-        <NavLink
-          key={category.handle}
-          className="iv-drawer-big"
-          onClick={close}
-          prefetch="intent"
-          to={`/collections/${category.handle}`}
-        >
-          {category.title}
-        </NavLink>
-      ))}
-      <hr />
-      <NavLink className="iv-drawer-small" onClick={close} to="/our-story">
-        Our story
-      </NavLink>
-      <NavLink className="iv-drawer-small" onClick={close} to="/account">
-        Your account
-      </NavLink>
-      <NavLink className="iv-drawer-small" onClick={close} to="/pages/contact">
-        Contact us
-      </NavLink>
-    </nav>
+    <>
+      <header className={`header${scrolled ? ' scrolled' : ''}`} id="top">
+        <div className="header-top">
+          <div className="side">
+            <button
+              ref={openBtn}
+              type="button"
+              className="icon-btn burger"
+              id="menuOpen"
+              aria-label="Open menu"
+              aria-expanded={menuOpen}
+              aria-controls="drawer"
+              onClick={() => setMenu(true)}
+            >
+              <svg
+                width="22"
+                height="22"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.3"
+                aria-hidden="true"
+              >
+                <path d="M3 7h18M3 12h18M3 17h18" />
+              </svg>
+            </button>
+          </div>
+          <Link
+            to="/"
+            className="logo"
+            aria-label="Ivaaro home"
+            prefetch="intent"
+          >
+            IVAARO
+          </Link>
+          <div className="side right">
+            <button
+              type="button"
+              className="icon-btn mobile-search"
+              aria-label="Search"
+              onClick={() => open('search')}
+            >
+              <SearchIcon />
+            </button>
+            <AccountLink isLoggedIn={isLoggedIn} />
+            <CartToggle cart={cart} />
+          </div>
+        </div>
+        <nav className="main-nav" aria-label="Main">
+          <ul>
+            {NAV.map((item) => (
+              <li key={item.handle}>
+                <Link
+                  to={`/${item.handle}`}
+                  prefetch="intent"
+                  className={`nav-link${current(item.handle) ? ' is-current' : ''}`}
+                  aria-current={current(item.handle) ? 'page' : undefined}
+                >
+                  {item.title}
+                </Link>
+              </li>
+            ))}
+            <li className="nav-divider" aria-hidden="true" />
+            <li>
+              <button
+                type="button"
+                className="icon-btn"
+                aria-label="Search"
+                onClick={() => open('search')}
+              >
+                <SearchIcon />
+              </button>
+            </li>
+          </ul>
+        </nav>
+      </header>
+
+      {/* Slide-out menu */}
+      <div
+        className="scrim"
+        id="scrim"
+        onClick={() => setMenu(false)}
+        aria-hidden="true"
+      />
+      <aside
+        className="drawer"
+        id="drawer"
+        aria-label="Site menu"
+        ref={drawer}
+        aria-hidden={!menuOpen}
+      >
+        <div className="panel root" id="panelRoot">
+          <div className="panel-top">
+            <button
+              ref={closeBtn}
+              type="button"
+              className="icon-btn"
+              aria-label="Close menu"
+              onClick={() => setMenu(false)}
+            >
+              <svg
+                width="22"
+                height="22"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.3"
+                aria-hidden="true"
+              >
+                <path d="M5 5l14 14M19 5L5 19" />
+              </svg>
+              <span className="lbl">Close</span>
+            </button>
+          </div>
+          <nav aria-label="Main">
+            {NAV.map((item) => (
+              <Link
+                key={item.handle}
+                className="nav-big"
+                to={`/${item.handle}`}
+                prefetch="intent"
+                aria-current={current(item.handle) ? 'page' : undefined}
+                onClick={() => setMenuOpen(false)}
+              >
+                {item.title}
+              </Link>
+            ))}
+          </nav>
+        </div>
+      </aside>
+    </>
   );
 }
 
-function HeaderMenuMobileToggle() {
-  const {open} = useAside();
+function SearchIcon() {
   return (
-    <button
-      type="button"
-      className="iv-icon-btn iv-hd-burger"
-      onClick={() => open('mobile')}
-      aria-label="Open menu"
+    <svg
+      width="21"
+      height="21"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.3"
+      aria-hidden="true"
     >
-      <svg
-        width="22"
-        height="22"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="1.3"
-        aria-hidden="true"
-      >
-        <path d="M3 7h18M3 12h18M3 17h18" />
-      </svg>
-    </button>
-  );
-}
-
-function SearchToggle() {
-  const {open} = useAside();
-  return (
-    <button
-      type="button"
-      className="iv-icon-btn"
-      onClick={() => open('search')}
-      aria-label="Search"
-    >
-      <svg
-        width="20"
-        height="20"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="1.3"
-        aria-hidden="true"
-      >
-        <circle cx="11" cy="11" r="7" />
-        <path d="M20 20l-4-4" />
-      </svg>
-    </button>
+      <circle cx="11" cy="11" r="6.5" />
+      <path d="M16 16l4.5 4.5" />
+    </svg>
   );
 }
 
@@ -181,26 +238,26 @@ function AccountLink({isLoggedIn}: Pick<HeaderProps, 'isLoggedIn'>) {
   return (
     <Suspense
       fallback={
-        <NavLink
+        <Link
           prefetch="intent"
           to="/account"
-          className="iv-icon-btn"
+          className="icon-btn hide-sm"
           aria-label="Sign in"
         >
           {icon}
-        </NavLink>
+        </Link>
       }
     >
       <Await resolve={isLoggedIn} errorElement={null}>
         {(loggedIn) => (
-          <NavLink
+          <Link
             prefetch="intent"
             to="/account"
-            className="iv-icon-btn"
+            className="icon-btn hide-sm"
             aria-label={loggedIn ? 'Account' : 'Sign in'}
           >
             {icon}
-          </NavLink>
+          </Link>
         )}
       </Await>
     </Suspense>
@@ -214,8 +271,8 @@ function CartBadge({count}: {count: number}) {
   return (
     <a
       href="/cart"
-      className="iv-icon-btn"
-      aria-label={`Cart, ${count} ${count === 1 ? 'item' : 'items'}`}
+      className="icon-btn bag-btn"
+      aria-label={`Bag, ${count} ${count === 1 ? 'item' : 'items'}`}
       onClick={(e) => {
         e.preventDefault();
         open('cart');

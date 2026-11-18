@@ -8,9 +8,6 @@
   --color-light: #fff;
 }
 
-img {
-  border-radius: 4px;
-}
 
 /*
 * --------------------------------------------------
@@ -84,7 +81,7 @@ img {
   }
 }
 
-aside {
+.overlay aside {
   background: var(--color-light);
   box-shadow: 0 0 50px rgba(0, 0, 0, 0.3);
   height: 100vh;
@@ -95,7 +92,7 @@ aside {
   transition: transform 200ms ease-in-out;
 }
 
-aside header {
+.overlay aside header {
   align-items: center;
   border-bottom: 1px solid var(--color-dark);
   display: flex;
@@ -104,11 +101,11 @@ aside header {
   padding: 0 20px;
 }
 
-aside header h3 {
+.overlay aside header h3 {
   margin: 0;
 }
 
-aside header .close {
+.overlay aside header .close {
   font-weight: bold;
   opacity: 0.8;
   text-decoration: none;
@@ -116,28 +113,28 @@ aside header .close {
   width: 20px;
 }
 
-aside header .close:hover {
+.overlay aside header .close:hover {
   opacity: 1;
 }
 
-aside header h2 {
+.overlay aside header h2 {
   margin-bottom: 0.6rem;
   margin-top: 0;
 }
 
-aside main {
+.overlay aside main {
   margin: 1rem;
 }
 
-aside p {
+.overlay aside p {
   margin: 0 0 0.25rem;
 }
 
-aside p:last-child {
+.overlay aside p:last-child {
   margin: 0;
 }
 
-aside li {
+.overlay aside li {
   margin-bottom: 0.125rem;
 }
 
@@ -223,82 +220,6 @@ button.reset:hover:not(:has(> *)) {
 /*
 * --------------------------------------------------
 * components/Header
-* --------------------------------------------------
-*/
-.header {
-  align-items: center;
-  background: #fff;
-  display: flex;
-  height: var(--header-height);
-  padding: 0 1rem;
-  position: sticky;
-  top: 0;
-  z-index: 1;
-}
-
-.header-menu-mobile-toggle {
-  @media (min-width: 48em) {
-    display: none;
-  }
-}
-
-.header-menu-mobile {
-  display: flex;
-  flex-direction: column;
-  grid-gap: 1rem;
-}
-
-.header-menu-desktop {
-  display: none;
-  grid-gap: 1rem;
-  @media (min-width: 45em) {
-    display: flex;
-    grid-gap: 1rem;
-    margin-left: 3rem;
-  }
-}
-
-.header-menu-item {
-  cursor: pointer;
-}
-
-.header-ctas {
-  align-items: center;
-  display: flex;
-  grid-gap: 1rem;
-  margin-left: auto;
-}
-
-.header-ctas > * {
-  min-width: fit-content;
-}
-
-/*
-* --------------------------------------------------
-* components/Footer
-* --------------------------------------------------
-*/
-.footer {
-  background: var(--color-dark);
-  margin-top: auto;
-}
-
-.footer-menu {
-  justify-content: center;
-  display: flex;
-  flex-wrap: wrap;
-  grid-gap: 1rem;
-  padding: 1rem;
-}
-
-.footer-menu a {
-  color: var(--color-light);
-  min-width: fit-content;
-}
-
-/*
-* --------------------------------------------------
-* components/Cart
 * --------------------------------------------------
 */
 .cart-main {

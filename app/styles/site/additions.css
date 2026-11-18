@@ -1,0 +1,46 @@
+/*
+ * Additions to the IVAARO site styles for the Shopify store:
+ * account and bag in the header, Add to bag, and other store-only pieces.
+ * Uses the site's own tokens (--ink, --brass, --line ...).
+ */
+
+/* Header: account and bag beside search */
+.header .side.right {
+  gap: 0;
+}
+
+.bag-btn {
+  position: relative;
+}
+
+.bag-btn .iv-cart-count {
+  position: absolute;
+  top: 6px;
+  right: 2px;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 4px;
+  border-radius: 8px;
+  background: var(--ink);
+  color: var(--ivory);
+  font-size: 10px;
+  line-height: 16px;
+  text-align: center;
+  letter-spacing: 0;
+}
+
+@media (max-width: 600px) {
+  .header .side.right .icon-btn {
+    min-width: 40px;
+  }
+}
+
+/* The cart and search drawers sit above the site header */
+.overlay {
+  z-index: 80;
+}
+
+/* Links rendered from page HTML keep the site's colours */
+.site-html a:not(.cta):not(.btn-solid):not(.btn-outline) {
+  color: inherit;
+}

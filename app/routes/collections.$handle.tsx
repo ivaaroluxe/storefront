@@ -3,6 +3,7 @@ import type {Route} from './+types/collections.$handle';
 import {getPaginationVariables, Analytics} from '@shopify/hydrogen';
 import {PaginatedResourceSection} from '~/components/PaginatedResourceSection';
 import {redirectIfHandleIsLocalized} from '~/lib/redirect';
+import {getCategory} from '~/lib/catalog';
 import {ProductItem} from '~/components/ProductItem';
 import type {ProductItemFragment} from 'storefrontapi.generated';
 
@@ -33,6 +34,11 @@ async function loadCriticalData({context, params, request}: Route.LoaderArgs) {
 
   if (!handle) {
     throw redirect('/collections');
+  }
+
+  // The six IVAARO collections have their own pages
+  if (getCategory(handle)) {
+    throw redirect(`/${handle}`, 301);
   }
 
   const [{collection}] = await Promise.all([

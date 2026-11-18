@@ -12,10 +12,10 @@ import {
 } from 'react-router';
 import type {Route} from './+types/root';
 import {FOOTER_QUERY, HEADER_QUERY} from '~/lib/fragments';
-import resetStyles from '~/styles/reset.css?url';
 import appStyles from '~/styles/app.css?url';
 import ivaaroStyles from '~/styles/ivaaro.css?url';
-import tailwindCss from './styles/tailwind.css?url';
+import shellStyles from '~/styles/site/shell.css?url';
+import additionsStyles from '~/styles/site/additions.css?url';
 import {PageLayout} from './components/PageLayout';
 
 export type RootLoader = typeof loader;
@@ -70,7 +70,7 @@ export function links() {
     },
     {
       rel: 'stylesheet',
-      href: 'https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&family=Jost:wght@400;500&display=swap',
+      href: 'https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Jost:wght@300;400;500&display=swap',
     },
     {rel: 'icon', type: 'image/png', href: '/images/favicon.png'},
   ];
@@ -160,10 +160,10 @@ export function Layout({children}: {children?: React.ReactNode}) {
       <head>
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width,initial-scale=1" />
-        <link rel="stylesheet" href={tailwindCss}></link>
-        <link rel="stylesheet" href={resetStyles}></link>
         <link rel="stylesheet" href={appStyles}></link>
         <link rel="stylesheet" href={ivaaroStyles}></link>
+        <link rel="stylesheet" href={shellStyles}></link>
+        <link rel="stylesheet" href={additionsStyles}></link>
         <Meta />
         <Links />
       </head>
